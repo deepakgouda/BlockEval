@@ -1,36 +1,37 @@
 import simpy
+import numpy as np
 from block import Block
 from network import Network
 
-def blockGenerator(name, miner, params):
-	"""Block generator"""
-	b = Block(name, params)
-	return b
-
-def transactionGenerator(id, params):
+def generateTransactions(net, params):
 	"""Transaction generator"""
-	t = Transaction(id, params)
-	return t
+	delay = 3
+	net.addTransaction(params)
+	yield env.timeout(delay)
 
-def simulate(miner, params):
+def simulate(net, env, params):
 	"""Begin simulation"""
-	blist = []
-	n = Network("Net1")
-	for i in range(1, 6):
-		delay = i
-		b = blockGenerator("Block%d"%i, miner, params)
-		blist.append(b)
-		b.validate(env, miner, delay)
-		print(b.name+" started validation at %7.4f"%env.now)
-		yield env.timeout(delay)
-		print(b.name+" validated at %7.4f"%env.now)
-		n.addBlock(b)
-		n.propagate()
-
+	# blist = []
+	# for i in range(1, 6):
+	# 	delay = params['mu']+params['sigma']*np.random.randn()
+		# b = blockGenerator("Block%d"%i, net.miner, params)
+		# blist.append(b)
+		# b.validate(env, net.miner, delay)
+		# print("%7.4f"%env.now+" : "+b.name+" started validation at %7.4f"%env.now)
+		# yield env.timeout(delay)
+		# print("%7.4f"%env.now+" : "+b.name+" validated at %7.4f"%env.now)
+		# net.addBlock(b)
+		# net.propagate()
+	pass
 
 env = simpy.Environment()
-minerCapacity = 2
-miner = simpy.Resource(env, capacity = minerCapacity)
-params = 10
-env.process(simulate(miner, params))
+numMiners = 2
+params = {}
+params['mu'] = 10
+params['sigma'] = 1
+net = Network("Net1", env)
+net.addMiner(numMiners)
+# net.addTransactionGenerator()
+env.process(generateTransactions(net, params))
+env.process(simulate(net, env, params))
 env.run(until = 30)
