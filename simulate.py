@@ -9,9 +9,12 @@ def simulate(env, params):
 	net.addMiner(params['numMiners'])
 
 env = simpy.Environment()
+
 params = {}
 params['mu'] = 10
 params['sigma'] = 1
 params['numMiners'] = 2
+
 simulate(env, params)
+
 env.run(until = 100)

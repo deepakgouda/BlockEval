@@ -11,6 +11,7 @@ class Network:
 		self.params = params
 		self.transactionList=[]
 		self.miner = []
+		self.pipes = []
 		self.env.process(self.addTransaction())
 		self.env.process(self.main())
 
@@ -34,6 +35,13 @@ class Network:
 			num+=1
 			if num == 5:
 				return
+
+	def broadcast(self, block):
+		"""Broadcast a block to all pipes"""
+		if not self.pipes:
+			raise RuntimeError('There are no output pipes.')
+		events = [store.put(value) for store in self.pipes]
+		return self.env.all_of(events)  # Condition event for all "events"
 
 	def main(self):
 		"""Transactions request resource i.e. miner and wait 
