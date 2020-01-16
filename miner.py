@@ -1,13 +1,15 @@
+"""Use Store to queue messages for miner"""
 class Miner:
 	"""docstring for Miner"""
 	def __init__(self, id, env):
 		self.id = id
 		self.env = env
-		self.action = self.env.process(blockGenerator(name, blockParams))
+		self.action = self.env.process(blockGenerator(name, \
+												blockParams))
 		self.pool = []
 		self.block = []
 
-	def blockGenerator(name, blockParams):
+	def blockGenerator(self, name, blockParams):
 		"""Block generator"""
 		b = Block(name, blockParams)
 		# return b
@@ -15,7 +17,7 @@ class Miner:
 		print("%7.4f"%env.now+" : "+"Block generated")
 		yield b
 
-	def validator():
+	def validator(self):
 		"""Validate transactions"""
 		pass
 
