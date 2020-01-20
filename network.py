@@ -1,5 +1,6 @@
 import simpy
 import numpy as np
+from miner import Miner
 from block import Block
 from transaction import Transaction
 
@@ -10,16 +11,22 @@ class Network:
 		self.env = env
 		self.params = params
 		self.transactionList=[]
-		self.miner = []
+		self.miners = []
 		self.pipes = []
 		self.env.process(self.addTransaction())
 		self.env.process(self.main())
 
-	def addMiner(self, numMiners):
+	def addMiners(self, numMiners):
 		"""Add miner to network"""
-		self.miner = simpy.Resource(self.env, capacity=\
-												numMiners)
-		print("%7.4f"%self.env.now+" : "+"Miner added")
+		for identifier in range(numMiners):
+			neighbourList = list(range(identifier)) + list(range(identifier+1, numMiners))
+			self.miners.append(Miner(identifier, self.env, \
+								neighbourList, self.pipes, self.params))
+			print("%7.4f"%self.env.now+" : "+"Miner added")
+
+	def addPipes(self, numMiners, capacity=simpy.core.Infinity):
+		for identifier in range(numMiners):
+			self.pipes.append(simpy.Store(self.env, capacity))
 
 	def addTransaction(self):
 		"""Generate transactions in network"""
@@ -32,43 +39,3 @@ class Network:
 			delay = (self.params['mu']+self.params['sigma']*np.random.\
 												randn(1))[0]
 			yield self.env.timeout(delay)
-			num+=1
-			if num == 5:
-				return
-
-	def broadcast(self, block):
-		"""Broadcast a block to all pipes"""
-		if not self.pipes:
-			raise RuntimeError('There are no output pipes.')
-		events = [store.put(value) for store in self.pipes]
-		return self.env.all_of(events)  # Condition event for all "events"
-
-	def main(self):
-		"""Transactions request resource i.e. miner and wait 
-		for confirmation or fail"""
-		while True:
-			while len(self.transactionList) > 0:
-				transaction = self.transactionList.pop(0)
-				print("%7.4f"%self.env.now+" : "+\
-							"%s evaluating"%\
-							transaction.identifier)
-				with self.miner.request() as req:
-					arrive = self.env.now
-					patience = np.random.uniform(0, 10)
-					results = yield req | self.env.timeout(patience)
-					wait = self.env.now-arrive
-					if req in results:
-						# We got the miner
-						confirmation = (self.params['mu']+self.params\
-								['sigma']*np.random.randn(1))[0]
-						yield self.env.timeout(confirmation)
-						print("%7.4f"%self.env.now+" : "+\
-									"%s confirmed"\
-									%transaction.identifier)
-					else:
-						# No confirmation
-						print("%7.4f"%self.env.now+" : "+\
-									"%s failed"\
-									%transaction.identifier)
-			yield self.env.timeout(1)
-				
