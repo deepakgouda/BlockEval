@@ -1,8 +1,9 @@
 {
   "mu": 10,
   "sigma": 2,
-  "numMiners": 10,
-  "simulationTime": 100,
+  "numMiners": 2,
+  "simulationTime": 20,
   "logFile": "output.log",
-  "verbose": "True"
+  "verbose": "True",
+  "blockCapacity": 3
 }
