@@ -58,7 +58,6 @@ class Miner:
 		if bool(self.params['verbose']):
 			print("%7.4f"%self.env.now+" : "+"Miner%d propagated Block%d"%\
 					(self.identifier, block.identifier))
-		print(events)
 		return self.env.all_of(events)  # Condition event for all "events"
 
 	def receiveBlock(self):
