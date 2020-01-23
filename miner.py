@@ -9,12 +9,13 @@ import numpy as np
 from block import Block
 class Miner:
 	"""docstring for Miner"""
-	def __init__(self, identifier, env, neighbourList, pipes, params):
+	def __init__(self, identifier, env, transactionPool, neighbourList, pipes, params):
 		self.identifier = identifier
 		self.env = env
 		self.neighbourList = neighbourList
 		self.pipes = pipes
 		self.params = params
+		self.transactionPool = transactionPool
 		self.pool = []
 		self.block = []
 		self.parentQueue = []
@@ -24,9 +25,12 @@ class Miner:
 
 	def blockGenerator(self, params):
 		"""Block generator"""
+		transactionCount = min(int(params["blockCapacity"]), len(self.transactionPool))
+		transactionList = self.transactionPool[:transactionCount]
+
 		blockID = 0
 		while True:
-			b = Block(blockID, params)
+			b = Block(blockID, transactionList, params)
 			delay = (self.params['mu']+self.params['sigma']*np.random.\
 												randn(1))[0]
 			yield self.env.timeout(delay)
@@ -49,10 +53,12 @@ class Miner:
 		events = []
 		for neighbourID in self.neighbourList:
 			store = self.pipes[neighbourID]
-			events.append(store.put(block))
+			events.append(store.put(block, self.identifier))
+
 		if bool(self.params['verbose']):
 			print("%7.4f"%self.env.now+" : "+"Miner%d propagated Block%d"%\
 					(self.identifier, block.identifier))
+		print(events)
 		return self.env.all_of(events)  # Condition event for all "events"
 
 	def receiveBlock(self):

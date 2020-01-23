@@ -16,6 +16,7 @@ with open('params.json', 'r') as f:
 	params = f.read()
 params = json.loads(params)
 
+np.random.seed(7)
 env = simpy.Environment()
 simulate(env, params)
 env.run(until = params['simulationTime'])
