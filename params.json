@@ -1,0 +1,7 @@
+{
+  "mu": 10,
+  "sigma": 2,
+  "numMiners": 2,
+  "simulationTime": 100,
+  "logFile": "output.log"
+}
