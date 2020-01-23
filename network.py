@@ -14,7 +14,6 @@ class Network:
 		self.miners = []
 		self.pipes = []
 		self.env.process(self.addTransaction())
-		self.env.process(self.main())
 
 	def addMiners(self, numMiners):
 		"""Add miner to network"""
@@ -22,7 +21,8 @@ class Network:
 			neighbourList = list(range(identifier)) + list(range(identifier+1, numMiners))
 			self.miners.append(Miner(identifier, self.env, \
 								neighbourList, self.pipes, self.params))
-			print("%7.4f"%self.env.now+" : "+"Miner added")
+			if bool(self.params['verbose']):
+				print("%7.4f"%self.env.now+" : "+"Miner added")
 
 	def addPipes(self, numMiners, capacity=simpy.core.Infinity):
 		for identifier in range(numMiners):
@@ -32,8 +32,9 @@ class Network:
 		"""Generate transactions in network"""
 		num=0
 		while True:
-			print("%7.4f"%self.env.now+" : "+\
-							"Transaction%d added"%num)
+			if bool(self.params['verbose']):
+				print("%7.4f"%self.env.now+" : "+\
+						"Transaction%d added"%num)
 			self.transactionList.append(Transaction(\
 							"Transaction%d"%num, self.env.now))
 			delay = (self.params['mu']+self.params['sigma']*np.random.\
