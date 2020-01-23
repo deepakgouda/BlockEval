@@ -30,15 +30,17 @@ class Miner:
 			delay = (self.params['mu']+self.params['sigma']*np.random.\
 												randn(1))[0]
 			yield self.env.timeout(delay)
-			# print("%7.4f"%self.env.now+" : Miner%d"%self.identifier+\
-			# 				" generated Block%d"%blockID)
+			if bool(self.params['verbose']):
+				print("%7.4f"%self.env.now+" : Miner%d"%self.identifier+\
+							" generated Block%d"%blockID)
 			self.blockchain.append(b)
 			self.broadcastBlock(b)
 			blockID += 1
 
 	def validator(self):
 		"""Validate transactions"""
-		print("miner", self.pipes)
+		if bool(self.params['verbose']):
+			print("miner", self.pipes)
 
 	def broadcastBlock(self, block):
 		"""Broadcast a block to all neighbours"""
@@ -48,8 +50,9 @@ class Miner:
 		for neighbourID in self.neighbourList:
 			store = self.pipes[neighbourID]
 			events.append(store.put(block))
-		# print("%7.4f"%self.env.now+" : "+"Miner%d propagated Block%d"%\
-		# 			(self.identifier, block.identifier))
+		if bool(self.params['verbose']):
+			print("%7.4f"%self.env.now+" : "+"Miner%d propagated Block%d"%\
+					(self.identifier, block.identifier))
 		return self.env.all_of(events)  # Condition event for all "events"
 
 	def receiveBlock(self):
@@ -62,17 +65,20 @@ class Miner:
 				currID = -1
 			if b.identifier <= currID:
 				pass
-				# print("%7.4f"%self.env.now+" : "+"Miner%d"%self.identifier+\
-				# 							" received previous Block%d"%b.identifier)
+				if bool(self.params['verbose']):
+					print("%7.4f"%self.env.now+" : "+"Miner%d"%self.identifier+\
+						" received previous Block%d"%b.identifier)
 			elif b.identifier == currID+1:
 				self.blockchain.append(b) # to shift to appropriate condition below
-				# print("%7.4f"%self.env.now+" : "+"Miner%d"%self.identifier+\
-				# 							" added Block%d"%b.identifier+" to the chain")
+				if bool(self.params['verbose']):
+					print("%7.4f"%self.env.now+" : "+"Miner%d"%self.identifier+\
+						" added Block%d"%b.identifier+" to the chain")
 			else:
 				self.updateBlockchain(b)
 		
 	def updateBlockchain(self, block):
 		"""Update blockchain by requesting blocks from peers"""
-		# print("%7.4f"%self.env.now+" : "+"Miner%d"%self.identifier+\
-		# 							" updated to Block%d"%block.identifier)
+		if bool(self.params['verbose']):
+			print("%7.4f"%self.env.now+" : "+"Miner%d"%self.identifier+\
+				" updated to Block%d"%block.identifier)
 		pass

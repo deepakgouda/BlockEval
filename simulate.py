@@ -16,17 +16,22 @@ with open('params.json', 'r') as f:
 	params = f.read()
 params = json.loads(params)
 
-# Simulation time tests
-max_n = 10000
-numPoints = 10
-lag = max_n//numPoints
-with open('tests/logs/data.log', 'w') as f:
-	for n in range(0, max_n+1, lag):
-		start = time()
-		env = simpy.Environment()
-		params['numMiners'] = n
-		simulate(env, params)
-		env.run(until = params['simulationTime'])
+env = simpy.Environment()
+simulate(env, params)
+env.run(until = params['simulationTime'])
+
+# Simulation time tests : Varying Simulation Time
+# max_n = 100000
+# numPoints = 10
+# lag = max_n//numPoints
+# with open('tests/logs/simTime.log', 'w') as f:
+# 	for n in range(10, max_n+1, lag):
+# 		start = time()
+
+# 		env = simpy.Environment()
+# 		params['simulationTime'] = n
+# 		simulate(env, params)
+# 		env.run(until = params['simulationTime'])
 		
-		stop = time()
-		f.write("%d %5.5f\n"%(n, stop-start))
+# 		stop = time()
+# 		f.write("%d %5.5f\n"%(n, stop-start))
