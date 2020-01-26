@@ -14,14 +14,14 @@ class Network:
 		self.transactionPool=[]
 		self.miners = []
 		self.pipes = []
-		self.env.process(self.addTransaction())
+		# self.env.process(self.addTransaction())
 
 	def addMiners(self, numMiners):
 		"""Add miner to network"""
 		for identifier in range(numMiners):
 			neighbourList = list(range(identifier)) + list(range(identifier+1, numMiners))
 			self.miners.append(Miner(identifier, self.env, self.transactionPool, \
-								neighbourList, self.pipes, self.params))
+								neighbourList, self.pipes, self.miners, self.params))
 			if bool(self.params['verbose']):
 				print("%7.4f"%self.env.now+" : "+"Miner added")
 
