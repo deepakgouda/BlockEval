@@ -1,7 +1,7 @@
 {
   "mu": 10,
   "sigma": 2,
-  "numMiners": 2,
+  "numMiners": 3,
   "simulationTime": 20,
   "logFile": "output.log",
   "verbose": "True",

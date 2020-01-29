@@ -9,7 +9,7 @@ import numpy as np
 from block import Block
 class Miner:
 	"""docstring for Miner"""
-	def __init__(self, identifier, env, transactionPool, neighbourList, pipes, params):
+	def __init__(self, identifier, env, transactionPool, neighbourList, pipes, miners, params):
 		self.identifier = identifier
 		self.env = env
 		self.neighbourList = neighbourList
@@ -20,7 +20,9 @@ class Miner:
 		self.block = []
 		self.parentQueue = []
 		self.blockchain = []
-		self.env.process(self.blockGenerator(params))
+		self.miners = miners
+		self.currentBlockID = 0
+		self.blockGeneratorAction = self.env.process(self.blockGenerator(params))
 		self.env.process(self.receiveBlock())
 
 	def blockGenerator(self, params):
@@ -28,18 +30,25 @@ class Miner:
 		transactionCount = min(int(params["blockCapacity"]), len(self.transactionPool))
 		transactionList = self.transactionPool[:transactionCount]
 
-		blockID = 0
 		while True:
-			b = Block(blockID, transactionList, params)
-			delay = (self.params['mu']+self.params['sigma']*np.random.\
-												randn(1))[0]
-			yield self.env.timeout(delay)
-			if bool(self.params['verbose']):
-				print("%7.4f"%self.env.now+" : Miner%d"%self.identifier+\
-							" generated Block%d"%blockID)
-			self.blockchain.append(b)
-			self.broadcastBlock(b)
-			blockID += 1
+			try:
+				b = Block(self.currentBlockID, transactionList, params)
+				delay = (self.params['mu']+self.params['sigma']*np.random.\
+													randn(1))[0]
+				yield self.env.timeout(delay)
+				if bool(self.params['verbose']):
+					print("%7.4f"%self.env.now+" : Miner%d"%self.identifier+\
+								" generated Block%d"%self.currentBlockID)
+				self.blockchain.append(b)
+				if bool(self.params['verbose']):
+					self.printChain()
+				self.broadcastBlock(b)
+				self.broadcastInterrupt()
+				self.currentBlockID += 1
+
+			except simpy.Interrupt:
+				print("%7.4f"%self.env.now+" : " + "Miner %d"%self.identifier + " interrupted. To mine block %d"%(self.currentBlockID+1) + " now")
+				self.currentBlockID += 1
 
 	def validator(self):
 		"""Validate transactions"""
@@ -60,6 +69,17 @@ class Miner:
 					(self.identifier, block.identifier))
 		return self.env.all_of(events)  # Condition event for all "events"
 
+	def broadcastInterrupt(self):
+		"""Broadcast an interrupt to all neighbours"""
+		if not self.pipes:
+			raise RuntimeError('There are no output pipes.')
+		events = []
+		for neighbourID in self.neighbourList:
+			store = self.pipes[neighbourID]
+			store.sendInterrupt(self.miners[neighbourID], self.identifier)
+
+		return self.env.all_of(events)  # Condition event for all "events"
+
 	def receiveBlock(self):
 		"""Receive newly mined block from neighbour"""
 		while True:
@@ -78,6 +98,7 @@ class Miner:
 				if bool(self.params['verbose']):
 					print("%7.4f"%self.env.now+" : "+"Miner%d"%self.identifier+\
 						" added Block%d"%b.identifier+" to the chain")
+					self.printChain()
 			else:
 				self.updateBlockchain(b)
 		
@@ -87,3 +108,8 @@ class Miner:
 			print("%7.4f"%self.env.now+" : "+"Miner%d"%self.identifier+\
 				" updated to Block%d"%block.identifier)
 		pass
+
+	def printChain(self):
+		chain = [b.identifier for b in self.blockchain]
+		print("%7.4f"%self.env.now+" : Miner%d"%self.identifier+\
+					" has current chain: %s"%chain)
