@@ -1,34 +1,38 @@
 """
 TODO : Implementation of custom miner resource
 - maintain Parent Queue
-- maintain Transaction pool
 - implement chain updation
+- shift delay to a util function
 """
 import simpy
 import numpy as np
 from block import Block
+from broadcast import broadcast
+from transactionPool import TransactionPool
+
 class Miner:
 	"""docstring for Miner"""
-	def __init__(self, identifier, env, transactionPool, neighbourList, pipes, miners, params):
+	def __init__(self, identifier, env, neighbourList, pipes, miners, params):
 		self.identifier = identifier
 		self.env = env
 		self.neighbourList = neighbourList
 		self.pipes = pipes
+		self.miners = miners
 		self.params = params
-		self.transactionPool = transactionPool
+		self.transactionPool = TransactionPool(self.env, [0, 1], \
+								"T"+str(self.identifier), self.miners, self.params)
 		self.pool = []
 		self.block = []
 		self.parentQueue = []
 		self.blockchain = []
-		self.miners = miners
 		self.currentBlockID = 0
 		self.blockGeneratorAction = self.env.process(self.blockGenerator(params))
 		self.env.process(self.receiveBlock())
 
 	def blockGenerator(self, params):
 		"""Block generator"""
-		transactionCount = min(int(params["blockCapacity"]), len(self.transactionPool))
-		transactionList = self.transactionPool[:transactionCount]
+		transactionCount = int(params["blockCapacity"])
+		transactionList = self.transactionPool.getTransaction(transactionCount)
 
 		while True:
 			try:
@@ -41,44 +45,27 @@ class Miner:
 								" generated Block%d"%self.currentBlockID)
 				self.blockchain.append(b)
 				if bool(self.params['verbose']):
-					self.printChain()
-				self.broadcastBlock(b)
-				self.broadcastInterrupt()
+					self.displayChain()
+					# self.displayLastBlock()
+				# Broadcast block to all neighbours
+				broadcast(self.env, b, "Block", self.identifier, self.neighbourList, \
+							self.params, pipes=self.pipes)
+				
+				# Broadcast interrupt to all neighbours
+				broadcast(self.env, "", "Interrupt", self.identifier, self.neighbourList,
+							self.params, pipes=self.pipes, miners=self.miners)
+
 				self.currentBlockID += 1
 
 			except simpy.Interrupt:
-				print("%7.4f"%self.env.now+" : " + "Miner %d"%self.identifier + " interrupted. To mine block %d"%(self.currentBlockID+1) + " now")
+				if bool(self.params['verbose']):
+					print("%7.4f"%self.env.now+" : " + "Miner %d"%self.identifier + " interrupted. To mine block %d"%(self.currentBlockID+1) + " now")
 				self.currentBlockID += 1
 
 	def validator(self):
 		"""Validate transactions"""
 		if bool(self.params['verbose']):
 			print("miner", self.pipes)
-
-	def broadcastBlock(self, block):
-		"""Broadcast a block to all neighbours"""
-		if not self.pipes:
-			raise RuntimeError('There are no output pipes.')
-		events = []
-		for neighbourID in self.neighbourList:
-			store = self.pipes[neighbourID]
-			events.append(store.put(block, self.identifier))
-
-		if bool(self.params['verbose']):
-			print("%7.4f"%self.env.now+" : "+"Miner%d propagated Block%d"%\
-					(self.identifier, block.identifier))
-		return self.env.all_of(events)  # Condition event for all "events"
-
-	def broadcastInterrupt(self):
-		"""Broadcast an interrupt to all neighbours"""
-		if not self.pipes:
-			raise RuntimeError('There are no output pipes.')
-		events = []
-		for neighbourID in self.neighbourList:
-			store = self.pipes[neighbourID]
-			store.sendInterrupt(self.miners[neighbourID], self.identifier)
-
-		return self.env.all_of(events)  # Condition event for all "events"
 
 	def receiveBlock(self):
 		"""Receive newly mined block from neighbour"""
@@ -98,7 +85,8 @@ class Miner:
 				if bool(self.params['verbose']):
 					print("%7.4f"%self.env.now+" : "+"Miner%d"%self.identifier+\
 						" added Block%d"%b.identifier+" to the chain")
-					self.printChain()
+					self.displayChain()
+					# self.displayLastBlock()
 			else:
 				self.updateBlockchain(b)
 		
@@ -109,7 +97,14 @@ class Miner:
 				" updated to Block%d"%block.identifier)
 		pass
 
-	def printChain(self):
+	def displayChain(self):
 		chain = [b.identifier for b in self.blockchain]
 		print("%7.4f"%self.env.now+" : Miner%d"%self.identifier+\
 					" has current chain: %s"%chain)
+	
+	def displayLastBlock(self):
+		if self.blockchain:
+			block = self.blockchain[-1]
+			transactions = block.transactionList
+		print("%7.4f"%self.env.now+" : Miner%d"%self.identifier+\
+                    " has last block: %s" % transactions)
