@@ -1,7 +1,7 @@
 {
   "mu": 10,
   "sigma": 2,
-  "transactionMu": 3,
+  "transactionMu": 2,
   "transactionSigma": 0.3,
   "numMiners": 3,
   "simulationTime": 20,
