@@ -3,7 +3,7 @@ def broadcast(env, object, objectType, source, neighbourList, params, pipes="", 
 	if objectType == "Transaction":
 		"""Broadcast a transaction to all neighbours"""
 		for neighbour in neighbourList:
-			miners[neighbour].transactionPool.putTransaction(object, source)
+			env.process(miners[neighbour].transactionPool.putTransaction(object, source))
 	elif objectType == "Block":
 		"""Broadcast a block to all neighbours"""
 		if not pipes:
@@ -14,7 +14,7 @@ def broadcast(env, object, objectType, source, neighbourList, params, pipes="", 
 			events.append(store.put(object, source))
 
 		if bool(params['verbose']):
-			print("%7.4f" % env.now+" : "+"Miner%d propagated Block%d" %
+			print("%7.4f" % env.now+" : "+"Miner %s propagated Block %s" %
 					(source, object.identifier))
 		return env.all_of(events)  # Condition event for all "events"
 	elif objectType == "Interrupt":
