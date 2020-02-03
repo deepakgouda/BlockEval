@@ -32,12 +32,18 @@ class Network:
 	def addTransaction(self):
 			num = 0
 			while True:
-					delay = (self.params['transactionMu']+self.params['transactionSigma']*np.random.randn(1))[0]
-					yield self.env.timeout(delay)
-					transaction = (Transaction("T%d"%num, self.env.now))
-					if bool(self.params['verbose']):
-							print("%7.4f" % self.env.now+" : " +"%s added" % (transaction.identifier))
-					# Broadcast transactions to all neighbours
-					broadcast(self.env, transaction, "Transaction", "TempID", \
-											["M0", "M1"], self.params, miners=self.miners)
-					num+=1
+				delay = (self.params['transactionMu']+self.params['transactionSigma']*np.random.randn(1))[0]
+				yield self.env.timeout(delay)
+				transaction = (Transaction("T%d"%num, self.env.now))
+				if bool(self.params['verbose']):
+						print("%7.4f" % self.env.now+" : " +"%s added" % (transaction.identifier))
+				# Broadcast transactions to all neighbours
+				broadcast(self.env, transaction, "Transaction", "TempID", \
+					['M0', 'M2'], self.params, miners=self.miners)
+				num+=1
+	
+	def displayChains(self):
+		print("\n--------------------All Miners--------------------\n")
+		for miner in self.miners.values():
+			miner.displayChain()
+

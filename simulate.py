@@ -10,6 +10,7 @@ def simulate(env, params):
 	net = Network("Blockchain", env, params)
 	net.addPipes(params['numMiners'])
 	net.addMiners(params['numMiners'])
+	return net
 
 # Load parameters from params.json
 with open('params.json', 'r') as f:
@@ -18,9 +19,9 @@ params = json.loads(params)
 
 np.random.seed(7)
 env = simpy.Environment()
-simulate(env, params)
+net = simulate(env, params)
 env.run(until = params['simulationTime'])
-
+net.displayChains()
 # Simulation time tests : Varying Simulation Time
 # max_n = 100000
 # numPoints = 10

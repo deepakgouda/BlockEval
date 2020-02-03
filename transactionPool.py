@@ -11,6 +11,7 @@ class TransactionPool:
         self.params = params
         self.miners = miners
         self.transactionList = []
+        self.prevTransactions = []
     
     def getTransaction(self, transactionCount):
         transactionCount = min(transactionCount, len(self.transactionList))
@@ -19,12 +20,13 @@ class TransactionPool:
 
     def popTransaction(self, transactionCount):
         transactionCount = min(transactionCount, len(self.transactionList))
+        self.prevTransactions = self.transactionList[:transactionCount]
         self.transactionList = self.transactionList[transactionCount:]
 
     def putTransaction(self, transaction, source):
         delay = 0.5
         yield self.env.timeout(delay)
-        if transaction not in self.transactionList:
+        if transaction not in self.transactionList and transaction not in self.prevTransactions:
             self.transactionList.append(transaction)
             print("%7.4f : %s accepted by %s"%(self.env.now, transaction.identifier, self.identifier))
             broadcast(self.env, transaction, "Transaction", self.identifier, \

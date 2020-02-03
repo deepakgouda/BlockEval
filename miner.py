@@ -79,6 +79,10 @@ class Miner:
 		if bool(self.params['verbose']):
 			print("miner", self.pipes)
 
+	def getBlockchain(self):
+		self.env.timeout(0.5*2)
+		return self.blockchain
+
 	def receiveBlock(self):
 		"""Receive newly mined block from neighbour"""
 		while True:
@@ -88,7 +92,6 @@ class Miner:
 			else:
 				currID = -1
 			if int(b.identifier[1:]) <= currID:
-				pass
 				if bool(self.params['verbose']):
 					print("%7.4f"%self.env.now+" : "+"Miner %s"%self.identifier+\
 						" received previous Block %s"%b.identifier)
@@ -97,6 +100,7 @@ class Miner:
 				for transaction in b.transactionList:
 					if transaction in self.transactionPool.transactionList:
 						self.transactionPool.transactionList.remove(transaction)
+						self.transactionPool.prevTransactions.append(transaction)
 				"""Append block to own chain"""
 				self.blockchain.append(b) # to shift to appropriate condition below
 				if bool(self.params['verbose']):
@@ -109,6 +113,12 @@ class Miner:
 		
 	def updateBlockchain(self, block):
 		"""Update blockchain by requesting blocks from peers"""
+		# maxChain = self.blockchain
+		# for neighbour in self.neighbourList:
+		# 	neighbourChain = self.miners[neighbour].getBlockchain()
+		# 	if len(maxChain) < len(neighbourChain):
+		# 		maxChain = neighbourChain
+		# self.blockchain = maxChain
 		if bool(self.params['verbose']):
 			print("%7.4f"%self.env.now+" : "+"Miner %s"%self.identifier+\
 				" updated to Block %s"%block.identifier)
