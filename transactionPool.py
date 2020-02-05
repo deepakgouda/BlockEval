@@ -14,17 +14,21 @@ class TransactionPool:
         self.prevTransactions = []
     
     def getTransaction(self, transactionCount):
+        """Returns transactionCount number of Transactions. Ideally, should 
+        return top transactions based on miner reward"""
         transactionCount = min(transactionCount, len(self.transactionList))
         transactions = self.transactionList[:transactionCount]
         return transactions
 
     def popTransaction(self, transactionCount):
+        """Remove transactions from transaction pool. Called when transactions 
+        are added by a received block or a block is mined."""
         transactionCount = min(transactionCount, len(self.transactionList))
         self.prevTransactions = self.transactionList[:transactionCount]
         self.transactionList = self.transactionList[transactionCount:]
 
-    def putTransaction(self, transaction, source):
-        delay = 0.5
+    def putTransaction(self, transaction, delay):
+        """Add received transaction to the transaction pool and broadcast further"""
         yield self.env.timeout(delay)
         if transaction not in self.transactionList and transaction not in self.prevTransactions:
             self.transactionList.append(transaction)

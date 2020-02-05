@@ -1,23 +1,23 @@
 """
-TODO : Implementation of custom miner resource
-- maintain Parent Queue
-- implement chain updation
-- shift delay to a util function
+Implementation of custom miner resource
 """
 import simpy
 import numpy as np
 from block import Block
 from broadcast import broadcast
+from utils import getBlockDelay
 from transactionPool import TransactionPool
 
 class Miner:
 	"""docstring for Miner"""
-	def __init__(self, identifier, env, neighbourList, pipes, miners, params):
+
+	def __init__(self, identifier, env, neighbourList, pipes, miners, location, params):
 		self.identifier = identifier
 		self.env = env
 		self.neighbourList = neighbourList
 		self.pipes = pipes
 		self.miners = miners
+		self.location = location
 		self.params = params
 		self.transactionPool = TransactionPool(env, identifier, neighbourList, miners, params)
 		self.pool = []
@@ -30,11 +30,9 @@ class Miner:
 
 	def blockGenerator(self, params):
 		"""Block generator"""
-
 		while True:
 			try:
-				delay = (self.params['mu']+self.params['sigma']*np.random.\
-													randn(1))[0]
+				delay = getBlockDelay(self.params['mu'], self.params['sigma'])
 				yield self.env.timeout(delay)
 
 				transactionCount = int(params["blockCapacity"])
@@ -58,7 +56,7 @@ class Miner:
 					l.append(transaction.identifier)
 				print("%7.4f"%self.env.now+" : Block %s has transaction list: %s" %(b.identifier, l))
 				broadcast(self.env, b, "Block", self.identifier, self.neighbourList, \
-							self.params, pipes=self.pipes)
+							self.params, pipes=self.pipes, miners=self.miners)
 
 				# Remove transactions from local pool
 				self.transactionPool.popTransaction(transactionCount)

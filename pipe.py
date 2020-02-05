@@ -12,16 +12,14 @@ class Pipe(object):
         yield self.env.timeout(delay)
         return self.store.put(value)
 
-    def put(self, value, srcID):
-        delay = 0.5
+    def put(self, value, delay):
         return self.env.process(self.latencyPut(value, delay))
 
     def latencyInterrupt(self, delay, miner):
         yield self.env.timeout(delay)
         miner.blockGeneratorAction.interrupt()
 
-    def sendInterrupt(self, miner, srcID):
-        delay = 0.5
+    def sendInterrupt(self, miner, delay):
         self.env.process(self.latencyInterrupt(delay, miner))
 
     def get(self):

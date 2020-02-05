@@ -1,11 +1,69 @@
 {
-  "mu": 10,
-  "sigma": 2,
+  "mu": 300.7971245,
+  "sigma": 3.00835585,
   "transactionMu": 2,
   "transactionSigma": 0.3,
-  "numMiners": 100,
-  "simulationTime": 30,
+  "numMiners": 5,
+  "simulationTime": 600,
   "logFile": "output.log",
   "verbose": "True",
-  "blockCapacity": 3
+  "blockCapacity": 3,
+  "locations": ["Ireland", "Tokyo", "Ohio"],
+  "delay": 
+  {
+    "Ireland":
+    {
+      "Ireland": {
+        "mu":1.0420075,
+        "sigma":0.20659828761088511
+      },
+      "Tokyo": 
+      {
+        "mu": 222.0275,
+        "sigma": 0.25834811785650774
+      },
+      "Ohio": 
+      {
+        "mu": 84.6995,
+        "sigma": 0.19583092197097127
+      }
+    },
+    "Tokyo": 
+    {
+      "Ireland": 
+      {
+        "mu": 222.0275,
+        "sigma": 0.25834811785650774
+      },
+      "Tokyo":
+      {
+        "mu": 0.54122749999999997,
+        "sigma": 0.11590502898386248
+
+      },
+      "Ohio":
+      {
+        "mu":156.04249999999999,
+        "sigma": 0.60884624495844586
+      }
+    },
+    "Ohio": 
+    {
+      "Ireland":
+      {
+        "mu": 84.6995,
+        "sigma": 0.19583092197097127
+      },
+      "Tokyo":
+      {
+        "mu": 156.04249999999999,
+        "sigma": 0.60884624495844586
+      },
+      "Ohio":
+      {
+        "mu": 0.56652500000000006,
+        "sigma": 0.26535878424314502
+      }
+    }
+  }
 }

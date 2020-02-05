@@ -5,6 +5,7 @@ from block import Block
 from pipe import Pipe
 from broadcast import broadcast
 from transaction import Transaction
+from utils import getTransmissionDelay
 
 class Network:
 	"""docstring for Network"""
@@ -12,6 +13,7 @@ class Network:
 		self.name = name
 		self.env = env
 		self.params = params
+		self.locations = params['locations']
 		self.miners = {}
 		self.pipes = {}
 		self.env.process(self.addTransaction())
@@ -20,19 +22,22 @@ class Network:
 		"""Add miner to network"""
 		for identifier in range(numMiners):
 			neighbourList = ["M%d"%x for x in list(range(identifier)) + list(range(identifier+1, numMiners))] 
+			location = np.random.choice(self.locations, size=1)[0]
 			self.miners["M%d"%identifier] = Miner("M%d"%identifier, self.env,\
-																			neighbourList, self.pipes, self.miners, self.params)
+										neighbourList, self.pipes, self.miners, location, self.params)
 			if bool(self.params['verbose']):
-				print("%7.4f"%self.env.now+" : "+"Miner added")
+				print("%7.4f"%self.env.now+" : "+"Miner added at location %s"%location)
 
-	def addPipes(self, numMiners, capacity=simpy.core.Infinity):
+	def addPipes(self, numMiners):
 		for identifier in range(numMiners):
 			self.pipes["M%d"%identifier] = Pipe(self.env, "M%d"%identifier)
 
 	def addTransaction(self):
 			num = 0
 			while True:
-				delay = (self.params['transactionMu']+self.params['transactionSigma']*np.random.randn(1))[0]
+				source = np.random.choice(self.locations, size=1)[0]
+				destination = np.random.choice(self.locations, size=1)[0]
+				delay = getTransmissionDelay(source, destination)
 				yield self.env.timeout(delay)
 				transaction = (Transaction("T%d"%num, self.env.now))
 				if bool(self.params['verbose']):
