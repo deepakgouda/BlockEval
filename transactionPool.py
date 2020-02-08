@@ -1,6 +1,7 @@
-from transaction import Transaction
-from broadcast import broadcast
 import numpy as np
+from broadcast import broadcast
+from transaction import Transaction
+from utils import getTransmissionDelay
 
 class TransactionPool:
     """Transaction pool for a miner"""
@@ -27,8 +28,10 @@ class TransactionPool:
         self.prevTransactions = self.transactionList[:transactionCount]
         self.transactionList = self.transactionList[transactionCount:]
 
-    def putTransaction(self, transaction, delay):
+    def putTransaction(self, transaction, sourceLocation):
         """Add received transaction to the transaction pool and broadcast further"""
+        destLocation = self.miners[self.identifier].location
+        delay = getTransmissionDelay(sourceLocation, destLocation)
         yield self.env.timeout(delay)
         if transaction not in self.transactionList and transaction not in self.prevTransactions:
             self.transactionList.append(transaction)

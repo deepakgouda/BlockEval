@@ -1,14 +1,10 @@
-from utils import getTransmissionDelay
-
 def broadcast(env, object, objectType, source, neighbourList, params, pipes="", miners=""):
 	"""Broadcasts the object from the source to destination"""
 	if objectType == "Transaction":
 		"""Broadcast a transaction to all neighbours"""
 		for neighbour in neighbourList:
 			sourceLocation = "Ireland"
-			destLocation = miners[neighbour].location
-			delay = getTransmissionDelay(sourceLocation, destLocation)
-			env.process(miners[neighbour].transactionPool.putTransaction(object, delay))
+			env.process(miners[neighbour].transactionPool.putTransaction(object, sourceLocation))
 
 	elif objectType == "Block":
 		"""Broadcast a block to all neighbours"""
@@ -18,11 +14,8 @@ def broadcast(env, object, objectType, source, neighbourList, params, pipes="", 
 		for neighbour in neighbourList:
 			# Obtain transmission delay
 			sourceLocation = miners[neighbour].location
-			destLocation = miners[neighbour].location
-			delay = getTransmissionDelay(sourceLocation, destLocation)
-
 			store = pipes[neighbour]
-			events.append(store.put(object, delay))
+			events.append(store.put(object, sourceLocation))
 
 		if bool(params['verbose']):
 			print("%7.4f" % env.now+" : "+"Miner %s propagated Block %s" %
@@ -36,10 +29,7 @@ def broadcast(env, object, objectType, source, neighbourList, params, pipes="", 
 		events = []
 		for neighbour in neighbourList:
 			# Obtain transmission delay
-			sourceLocation = miners[neighbour].location
-			destLocation = miners[neighbour].location
-			delay = getTransmissionDelay(sourceLocation, destLocation)
-
+			sourceLocation = miners[source].location
 			store = pipes[neighbour]
-			store.sendInterrupt(miners[neighbour], delay)
+			store.sendInterrupt(miners[neighbour], sourceLocation)
 		return env.all_of(events)

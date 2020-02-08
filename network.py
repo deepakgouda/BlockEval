@@ -30,7 +30,7 @@ class Network:
 
 	def addPipes(self, numMiners):
 		for identifier in range(numMiners):
-			self.pipes["M%d"%identifier] = Pipe(self.env, "M%d"%identifier)
+			self.pipes["M%d"%identifier] = Pipe(self.env, "M%d"%identifier, self.miners)
 
 	def addTransaction(self):
 			num = 0
