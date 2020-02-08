@@ -3,8 +3,8 @@
   "sigma": 2,
   "transactionMu": 2,
   "transactionSigma": 0.3,
-  "numMiners": 100,
-  "simulationTime": 30,
+  "numMiners": 5,
+  "simulationTime": 20,
   "logFile": "output.log",
   "verbose": "True",
   "blockCapacity": 3
