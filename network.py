@@ -20,6 +20,8 @@ class Network:
 
 	def addMiners(self, numMiners):
 		"""Add miner to network"""
+		# Degree of network graph. Degree >= n/2 guarantees a connected graph
+		degree = numMiners//2
 		for identifier in range(numMiners):
 			neighbourList = ["M%d"%x for x in list(range(identifier)) + list(range(identifier+1, numMiners))] 
 			location = np.random.choice(self.locations, size=1)[0]
