@@ -49,7 +49,7 @@ class Miner:
 				self.blockchain.append(b)
 				if bool(self.params['verbose']):
 					self.displayChain()
-					# self.displayLastBlock()
+
 				# Broadcast block to all neighbours
 				l = []
 				for transaction in transactionList:
@@ -60,11 +60,6 @@ class Miner:
 
 				# Remove transactions from local pool
 				self.transactionPool.popTransaction(transactionCount)
-				
-				# Broadcast interrupt to all neighbours
-				broadcast(self.env, "", "Interrupt", self.identifier, self.neighbourList,
-							self.params, pipes=self.pipes, miners=self.miners)
-
 				self.currentBlockID += 1
 
 			except simpy.Interrupt:
@@ -89,34 +84,35 @@ class Miner:
 				currID = int(self.blockchain[-1].identifier[1:])
 			else:
 				currID = -1
-			if int(b.identifier[1:]) <= currID:
-				if bool(self.params['verbose']):
-					print("%7.4f"%self.env.now+" : "+"Miner %s"%self.identifier+\
-						" received previous Block %s"%b.identifier)
-			elif int(b.identifier[1:]) == currID+1:
+			currIDs = [x.identifier for x in self.blockchain]
+			if int(b.identifier[1:]) == currID+1 and b.identifier not in currIDs:
+				# Interrupt block generation
+				self.blockGeneratorAction.interrupt()
+
 				"""Remove already mined transactions from private pool"""
 				for transaction in b.transactionList:
 					if transaction in self.transactionPool.transactionList:
 						self.transactionPool.transactionList.remove(transaction)
 						self.transactionPool.prevTransactions.append(transaction)
 				"""Append block to own chain"""
-				self.blockchain.append(b) # to shift to appropriate condition below
+				self.blockchain.append(b)
 				if bool(self.params['verbose']):
 					print("%7.4f"%self.env.now+" : "+"Miner %s"%self.identifier+\
 						" added Block %s"%b.identifier+" to the chain")
 					self.displayChain()
-					# self.displayLastBlock()
 			else:
+				"""If an invalid block is received, check neighbours and update 
+				the chain if a longer chain is found"""
 				self.updateBlockchain(b)
 		
 	def updateBlockchain(self, block):
 		"""Update blockchain by requesting blocks from peers"""
-		# maxChain = self.blockchain
-		# for neighbour in self.neighbourList:
-		# 	neighbourChain = self.miners[neighbour].getBlockchain()
-		# 	if len(maxChain) < len(neighbourChain):
-		# 		maxChain = neighbourChain
-		# self.blockchain = maxChain
+		maxChain = self.blockchain
+		for neighbour in self.neighbourList:
+			neighbourChain = self.miners[neighbour].getBlockchain()
+			if len(maxChain) < len(neighbourChain):
+				maxChain = neighbourChain
+		self.blockchain = maxChain
 		if bool(self.params['verbose']):
 			print("%7.4f"%self.env.now+" : "+"Miner %s"%self.identifier+\
 				" updated to Block %s"%block.identifier)

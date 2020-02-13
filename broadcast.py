@@ -21,15 +21,3 @@ def broadcast(env, object, objectType, source, neighbourList, params, pipes="", 
 			print("%7.4f" % env.now+" : "+"Miner %s propagated Block %s" %
 					(source, object.identifier))
 		return env.all_of(events)
-
-	elif objectType == "Interrupt":
-		"""Broadcast an interrupt to all neighbours"""
-		if not pipes:
-			raise RuntimeError('There are no output pipes.')
-		events = []
-		for neighbour in neighbourList:
-			# Obtain transmission delay
-			sourceLocation = miners[source].location
-			store = pipes[neighbour]
-			store.sendInterrupt(miners[neighbour], sourceLocation)
-		return env.all_of(events)

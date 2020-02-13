@@ -20,13 +20,26 @@ class Network:
 
 	def addMiners(self, numMiners):
 		"""Add miner to network"""
+		# Degree of network graph. Degree >= n/2 guarantees a connected graph
+		degree = numMiners//2 + 1
 		for identifier in range(numMiners):
-			neighbourList = ["M%d"%x for x in list(range(identifier)) + list(range(identifier+1, numMiners))] 
+			# Possible neighbours are [0, 1, ... i-1, i+1, ... n]
+			possibleNeighbours = list(range(identifier)) + \
+                    	list(range(identifier+1, numMiners))
+			# Generate a random sample of size degree without replacement from possible neighbours
+			randNeighbour = np.random.choice(possibleNeighbours, size=degree, replace=False)
+			neighbourList = ["M%d"%x for x in randNeighbour]
+			# self.miners["M%d"%identifier] = Miner("M%d"%identifier, self.env,\
+			# 							neighbourList, self.pipes, self.miners, self.params)
+			# if bool(self.params['verbose']):
+			# 	print("%7.4f" % self.env.now+" : "+"%s added with neighbourList %s" %
+			# 		("M%d" % identifier, neighbourList))
+			# neighbourList = ["M%d"%x for x in list(range(identifier)) + list(range(identifier+1, numMiners))] 
 			location = np.random.choice(self.locations, size=1)[0]
 			self.miners["M%d"%identifier] = Miner("M%d"%identifier, self.env,\
 										neighbourList, self.pipes, self.miners, location, self.params)
 			if bool(self.params['verbose']):
-				print("%7.4f"%self.env.now+" : "+"Miner added at location %s"%location)
+				print("%7.4f"%self.env.now+" : "+"%s added at location %s with neighbour list %s"%("M%d"%identifier, location, neighbourList))
 
 	def addPipes(self, numMiners):
 		for identifier in range(numMiners):
