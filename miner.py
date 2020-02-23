@@ -32,7 +32,7 @@ class Miner:
 		"""Block generator"""
 		while True:
 			try:
-				delay = getBlockDelay(self.params['mu'], self.params['sigma'])
+				delay = getBlockDelay(self.params['blockMu'], self.params['blockSigma'])
 				yield self.env.timeout(delay)
 
 				transactionCount = int(params["blockCapacity"])
@@ -40,8 +40,9 @@ class Miner:
 				l = []
 				for transaction in transactionList:
 					l.append(transaction.identifier)
-				print("%7.4f"%self.env.now+" : Miner %s proposing block with transaction list: %s" %(self.identifier, l))
 				b = Block("B"+str(self.currentBlockID), transactionList, params)
+				print("%7.4f" % self.env.now+" : Miner %s proposing %s with transaction list[%d]: %s" % (
+					self.identifier, b.identifier, len(l), l))
 
 				if bool(self.params['verbose']):
 					print("%7.4f"%self.env.now+" : Miner %s"%self.identifier+\
@@ -54,7 +55,6 @@ class Miner:
 				l = []
 				for transaction in transactionList:
 					l.append(transaction.identifier)
-				print("%7.4f"%self.env.now+" : Block %s has transaction list: %s" %(b.identifier, l))
 				broadcast(self.env, b, "Block", self.identifier, self.neighbourList, \
 							self.params, pipes=self.pipes, miners=self.miners)
 
@@ -103,20 +103,20 @@ class Miner:
 			else:
 				"""If an invalid block is received, check neighbours and update 
 				the chain if a longer chain is found"""
-				self.updateBlockchain(b)
+				# self.updateBlockchain(b)
+				pass
 		
 	def updateBlockchain(self, block):
 		"""Update blockchain by requesting blocks from peers"""
-		maxChain = self.blockchain
+		maxChain = self.blockchain.copy()
 		for neighbour in self.neighbourList:
 			neighbourChain = self.miners[neighbour].getBlockchain()
 			if len(maxChain) < len(neighbourChain):
-				maxChain = neighbourChain
-		self.blockchain = maxChain
-		if bool(self.params['verbose']):
-			print("%7.4f"%self.env.now+" : "+"Miner %s"%self.identifier+\
+				maxChain = neighbourChain.copy()
+		self.blockchain = maxChain.copy()
+		# if bool(self.params['verbose']):
+		print("%7.4f"%self.env.now+" : "+"Miner %s"%self.identifier+\
 				" updated to Block %s"%block.identifier)
-		pass
 
 	def displayChain(self):
 		chain = [b.identifier for b in self.blockchain]
