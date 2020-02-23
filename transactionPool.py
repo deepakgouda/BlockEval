@@ -35,10 +35,11 @@ class TransactionPool:
         yield self.env.timeout(delay)
         if transaction not in self.transactionList and transaction not in self.prevTransactions:
             self.transactionList.append(transaction)
+            broadcast(self.env, transaction, "Transaction", self.identifier, \
+                        self.neighbourList, self.params, miners=self.miners)
+
             if bool(self.params['verbose']):
                 print("%7.4f : %s accepted by %s"%(self.env.now, transaction.identifier, self.identifier))
-                broadcast(self.env, transaction, "Transaction", self.identifier, \
-                            self.neighbourList, self.params, miners=self.miners)
         
 
 
