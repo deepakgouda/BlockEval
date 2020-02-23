@@ -41,8 +41,8 @@ class Miner:
 				for transaction in transactionList:
 					l.append(transaction.identifier)
 				b = Block("B"+str(self.currentBlockID), transactionList, params)
-				print("%7.4f" % self.env.now+" : Miner %s proposing %s with transaction list[%d]: %s" % (
-					self.identifier, b.identifier, len(l), l))
+				print("%7.4f" % self.env.now+" : Miner %s proposing %s with transaction list count %d" % (
+					self.identifier, b.identifier, len(l)))
 
 				if bool(self.params['verbose']):
 					print("%7.4f"%self.env.now+" : Miner %s"%self.identifier+\
@@ -103,20 +103,25 @@ class Miner:
 			else:
 				"""If an invalid block is received, check neighbours and update 
 				the chain if a longer chain is found"""
-				# self.updateBlockchain(b)
-				pass
+				self.updateBlockchain()
 		
-	def updateBlockchain(self, block):
+	def updateBlockchain(self):
 		"""Update blockchain by requesting blocks from peers"""
 		maxChain = self.blockchain.copy()
+		neighbourID = "-"
+		flag = False
 		for neighbour in self.neighbourList:
 			neighbourChain = self.miners[neighbour].getBlockchain()
 			if len(maxChain) < len(neighbourChain):
 				maxChain = neighbourChain.copy()
+				neighbourID = neighbour
+				flag = True
 		self.blockchain = maxChain.copy()
-		# if bool(self.params['verbose']):
-		print("%7.4f"%self.env.now+" : "+"Miner %s"%self.identifier+\
-				" updated to Block %s"%block.identifier)
+		if flag:
+			self.currentBlockID = int(self.blockchain[-1].identifier[1:])+1
+		if bool(self.params['verbose']):
+			print("%7.4f"%self.env.now+" : "+"Miner %s"%self.identifier+\
+			" updated to chain of %s with latest block %s"%(neighbourID, block.identifier))
 
 	def displayChain(self):
 		chain = [b.identifier for b in self.blockchain]
