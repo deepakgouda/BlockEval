@@ -4,29 +4,18 @@ Implementation of custom miner resource
 import simpy
 import numpy as np
 from block import Block
+from fullNode import FullNode
 from broadcast import broadcast
 from utils import getBlockDelay, getTransmissionDelay
 from transactionPool import TransactionPool
 
-class Miner:
+class Miner(FullNode):
 	"""docstring for Miner"""
 
 	def __init__(self, identifier, env, neighbourList, pipes, allNodes, location, params):
-		self.identifier = identifier
-		self.env = env
-		self.neighbourList = neighbourList
-		self.pipes = pipes
-		self.allNodes = allNodes
-		self.location = location
-		self.params = params
-		self.transactionPool = TransactionPool(env, identifier, neighbourList, allNodes, params)
-		self.pool = []
-		self.block = []
-		self.parentQueue = []
-		self.blockchain = []
-		self.currentBlockID = 0
+		FullNode.__init__(self, identifier, env, neighbourList,
+                  pipes, allNodes, location, params)
 		self.blockGeneratorAction = self.env.process(self.blockGenerator(params))
-		self.env.process(self.receiveBlock())
 
 	def blockGenerator(self, params):
 		"""Block generator"""
@@ -41,11 +30,11 @@ class Miner:
 				for transaction in transactionList:
 					l.append(transaction.identifier)
 				b = Block("B"+str(self.currentBlockID), transactionList, params)
-				print("%7.4f" % self.env.now+" : Miner %s proposing %s with transaction list count %d with transactions %s ..." % (
+				print("%7.4f" % self.env.now+" : %s proposing %s with transaction list count %d with transactions %s ..." % (
 					self.identifier, b.identifier, len(l), l[:3]))
 
 				if bool(self.params['verbose']):
-					print("%7.4f"%self.env.now+" : Miner %s"%self.identifier+\
+					print("%7.4f"%self.env.now+" : %s"%self.identifier+\
 								" generated Block %s"%b.identifier)
 				self.blockchain.append(b)
 				if bool(self.params['verbose']):
@@ -64,17 +53,8 @@ class Miner:
 
 			except simpy.Interrupt:
 				if bool(self.params['verbose']):
-					print("%7.4f"%self.env.now+" : " + "Miner %s"%self.identifier + " interrupted. To mine block %s"%(self.currentBlockID+1) + " now")
+					print("%7.4f"%self.env.now+" : " + "%s"%self.identifier + " interrupted. To mine block %s"%(self.currentBlockID+1) + " now")
 				self.currentBlockID += 1
-
-	def validator(self):
-		"""Validate transactions"""
-		if bool(self.params['verbose']):
-			print("miner", self.pipes)
-
-	def getBlockchain(self, destination):
-		self.env.timeout(getTransmissionDelay(self.location, destination)*2)
-		return self.blockchain
 
 	def receiveBlock(self):
 		"""Receive newly mined block from neighbour"""
@@ -86,7 +66,7 @@ class Miner:
 				currID = -1
 			currIDs = [x.identifier for x in self.blockchain]
 			if int(b.identifier[1:]) == currID+1 and b.identifier not in currIDs:
-				# Interrupt block generation
+				"""Interrupt block generation"""
 				self.blockGeneratorAction.interrupt()
 
 				"""Remove already mined transactions from private pool"""
@@ -97,41 +77,10 @@ class Miner:
 				"""Append block to own chain"""
 				self.blockchain.append(b)
 				if bool(self.params['verbose']):
-					print("%7.4f"%self.env.now+" : "+"Miner %s"%self.identifier+\
+					print("%7.4f"%self.env.now+" : "+"%s"%self.identifier+\
 						" added Block %s"%b.identifier+" to the chain")
 					self.displayChain()
 			else:
 				"""If an invalid block is received, check neighbours and update 
 				the chain if a longer chain is found"""
 				self.updateBlockchain()
-		
-	def updateBlockchain(self):
-		"""Update blockchain by requesting blocks from peers"""
-		maxChain = self.blockchain.copy()
-		neighbourID = ""
-		flag = False
-		for neighbour in self.neighbourList:
-			neighbourChain = self.allNodes[neighbour].getBlockchain(self.location)
-			if len(maxChain) < len(neighbourChain):
-				maxChain = neighbourChain.copy()
-				neighbourID = neighbour
-				flag = True
-		self.blockchain = maxChain.copy()
-		if flag:
-			self.currentBlockID = int(self.blockchain[-1].identifier[1:])+1
-		if bool(self.params['verbose']):
-			if neighbourID:
-				print("%7.4f"%self.env.now+" : "+"Miner %s"%self.identifier+\
-					" updated to chain of %s"%(neighbourID))
-
-	def displayChain(self):
-		chain = [b.identifier for b in self.blockchain]
-		print("%7.4f"%self.env.now+" : Miner %s"%self.identifier+\
-					" has current chain: %s"%chain)
-	
-	def displayLastBlock(self):
-		if self.blockchain:
-			block = self.blockchain[-1]
-			transactions = block.transactionList
-		print("%7.4f"%self.env.now+" : Miner %s"%self.identifier+\
-                    " has last block: %s" % transactions)
