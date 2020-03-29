@@ -1,13 +1,14 @@
 {
-  "blockMu": 15.7971245421245,
-  "blockSigma": 3.00835585,
-  "transactionMu": 0.3334,
+  "blockMu": 15,
+  "blockSigma": 1,
+  "transactionMu": 5.66,
   "transactionSigma": 0.0,
-  "numMiners": 200,
-  "simulationTime": 500,
+  "numMiners": 5,
+  "numFullNodes": 5,
+  "simulationTime": 100,
   "logFile": "output.log",
-  "verbose": "",
-  "blockCapacity": 500,
+  "verbose": "True",
+  "blockCapacity": 15,
   "locations": ["Ireland", "Tokyo", "Ohio"],
   "delay": 
   {

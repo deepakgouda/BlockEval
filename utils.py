@@ -7,6 +7,12 @@ def getBlockDelay(mu, sigma):
         return getBlockDelay(mu, sigma)
     return delay
 
+def getTransactionDelay(mu, sigma):
+    delay = mu + sigma*np.random.randn()
+    if delay < 0:
+        return getTransactionDelay(mu, sigma)
+    return delay
+
 
 def getTransmissionDelay(source, destination):
     with open('params.json', 'r') as f:

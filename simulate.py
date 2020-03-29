@@ -8,8 +8,8 @@ from time import time
 def simulate(env, params):
 	"""Begin simulation"""
 	net = Network("Blockchain", env, params)
-	net.addPipes(params['numMiners'])
-	net.addMiners(params['numMiners'])
+	net.addNodes(params['numMiners'], params['numFullNodes'])
+	net.addPipes(params['numMiners'], params['numFullNodes'])
 	return net
 
 # Load parameters from params.json

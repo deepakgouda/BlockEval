@@ -5,12 +5,12 @@ from utils import getTransmissionDelay
 
 class TransactionPool:
     """Transaction pool for a miner"""
-    def __init__(self, env, identifier, neighbourList, miners, params):
+    def __init__(self, env, identifier, neighbourList, allNodes, params):
         self.env = env
         self.identifier = identifier
         self.neighbourList = neighbourList
         self.params = params
-        self.miners = miners
+        self.allNodes = allNodes
         self.transactionList = []
         self.prevTransactions = []
     
@@ -30,13 +30,13 @@ class TransactionPool:
 
     def putTransaction(self, transaction, sourceLocation):
         """Add received transaction to the transaction pool and broadcast further"""
-        destLocation = self.miners[self.identifier].location
+        destLocation = self.allNodes[self.identifier].location
         delay = getTransmissionDelay(sourceLocation, destLocation)
         yield self.env.timeout(delay)
         if transaction not in self.transactionList and transaction not in self.prevTransactions:
             self.transactionList.append(transaction)
             broadcast(self.env, transaction, "Transaction", self.identifier, \
-                        self.neighbourList, self.params, miners=self.miners)
+                        self.neighbourList, self.params, allNodes=self.allNodes)
 
             if bool(self.params['verbose']):
                 print("%7.4f : %s accepted by %s"%(self.env.now, transaction.identifier, self.identifier))

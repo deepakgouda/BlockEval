@@ -5,21 +5,21 @@ import simpy
 import numpy as np
 from block import Block
 from broadcast import broadcast
-from utils import getBlockDelay
+from utils import getBlockDelay, getTransmissionDelay
 from transactionPool import TransactionPool
 
 class Miner:
 	"""docstring for Miner"""
 
-	def __init__(self, identifier, env, neighbourList, pipes, miners, location, params):
+	def __init__(self, identifier, env, neighbourList, pipes, allNodes, location, params):
 		self.identifier = identifier
 		self.env = env
 		self.neighbourList = neighbourList
 		self.pipes = pipes
-		self.miners = miners
+		self.allNodes = allNodes
 		self.location = location
 		self.params = params
-		self.transactionPool = TransactionPool(env, identifier, neighbourList, miners, params)
+		self.transactionPool = TransactionPool(env, identifier, neighbourList, allNodes, params)
 		self.pool = []
 		self.block = []
 		self.parentQueue = []
@@ -41,8 +41,8 @@ class Miner:
 				for transaction in transactionList:
 					l.append(transaction.identifier)
 				b = Block("B"+str(self.currentBlockID), transactionList, params)
-				print("%7.4f" % self.env.now+" : Miner %s proposing %s with transaction list count %d" % (
-					self.identifier, b.identifier, len(l)))
+				print("%7.4f" % self.env.now+" : Miner %s proposing %s with transaction list count %d with transactions %s ..." % (
+					self.identifier, b.identifier, len(l), l[:3]))
 
 				if bool(self.params['verbose']):
 					print("%7.4f"%self.env.now+" : Miner %s"%self.identifier+\
@@ -51,14 +51,14 @@ class Miner:
 				if bool(self.params['verbose']):
 					self.displayChain()
 
-				# Broadcast block to all neighbours
+				"""Broadcast block to all neighbours"""
 				l = []
 				for transaction in transactionList:
 					l.append(transaction.identifier)
 				broadcast(self.env, b, "Block", self.identifier, self.neighbourList, \
-							self.params, pipes=self.pipes, miners=self.miners)
+							self.params, pipes=self.pipes, allNodes=self.allNodes)
 
-				# Remove transactions from local pool
+				"""Remove transactions from local pool"""
 				self.transactionPool.popTransaction(transactionCount)
 				self.currentBlockID += 1
 
@@ -72,8 +72,8 @@ class Miner:
 		if bool(self.params['verbose']):
 			print("miner", self.pipes)
 
-	def getBlockchain(self):
-		self.env.timeout(0.5*2)
+	def getBlockchain(self, destination):
+		self.env.timeout(getTransmissionDelay(self.location, destination)*2)
 		return self.blockchain
 
 	def receiveBlock(self):
@@ -108,10 +108,10 @@ class Miner:
 	def updateBlockchain(self):
 		"""Update blockchain by requesting blocks from peers"""
 		maxChain = self.blockchain.copy()
-		neighbourID = "-"
+		neighbourID = ""
 		flag = False
 		for neighbour in self.neighbourList:
-			neighbourChain = self.miners[neighbour].getBlockchain()
+			neighbourChain = self.allNodes[neighbour].getBlockchain(self.location)
 			if len(maxChain) < len(neighbourChain):
 				maxChain = neighbourChain.copy()
 				neighbourID = neighbour
@@ -120,8 +120,9 @@ class Miner:
 		if flag:
 			self.currentBlockID = int(self.blockchain[-1].identifier[1:])+1
 		if bool(self.params['verbose']):
-			print("%7.4f"%self.env.now+" : "+"Miner %s"%self.identifier+\
-			" updated to chain of %s with latest block %s"%(neighbourID, block.identifier))
+			if neighbourID:
+				print("%7.4f"%self.env.now+" : "+"Miner %s"%self.identifier+\
+					" updated to chain of %s"%(neighbourID))
 
 	def displayChain(self):
 		chain = [b.identifier for b in self.blockchain]
