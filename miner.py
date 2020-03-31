@@ -12,9 +12,9 @@ from transactionPool import TransactionPool
 class Miner(FullNode):
 	"""docstring for Miner"""
 
-	def __init__(self, identifier, env, neighbourList, pipes, allNodes, location, params):
+	def __init__(self, identifier, env, neighbourList, pipes, nodes, location, params):
 		FullNode.__init__(self, identifier, env, neighbourList,
-                  pipes, allNodes, location, params)
+                  pipes, nodes, location, params)
 		self.blockGeneratorAction = self.env.process(self.blockGenerator(params))
 
 	def blockGenerator(self, params):
@@ -45,7 +45,7 @@ class Miner(FullNode):
 				for transaction in transactionList:
 					l.append(transaction.identifier)
 				broadcast(self.env, b, "Block", self.identifier, self.neighbourList, \
-							self.params, pipes=self.pipes, allNodes=self.allNodes)
+							self.params, pipes=self.pipes, nodes=self.nodes)
 
 				"""Remove transactions from local pool"""
 				self.transactionPool.popTransaction(transactionCount)

@@ -11,15 +11,15 @@ from transactionPool import TransactionPool
 class FullNode:
 	"""docstring for FullNode"""
 
-	def __init__(self, identifier, env, neighbourList, pipes, allNodes, location, params):
+	def __init__(self, identifier, env, neighbourList, pipes, nodes, location, params):
 		self.identifier = identifier
 		self.env = env
 		self.neighbourList = neighbourList
 		self.pipes = pipes
-		self.allNodes = allNodes
+		self.nodes = nodes
 		self.location = location
 		self.params = params
-		self.transactionPool = TransactionPool(env, identifier, neighbourList, allNodes, params)
+		self.transactionPool = TransactionPool(env, identifier, neighbourList, nodes, params)
 		self.pool = []
 		self.block = []
 		self.parentQueue = []
@@ -69,7 +69,7 @@ class FullNode:
 		neighbourID = ""
 		flag = False
 		for neighbour in self.neighbourList:
-			neighbourChain = self.allNodes[neighbour].getBlockchain(self.location)
+			neighbourChain = self.nodes[neighbour].getBlockchain(self.location)
 			if len(maxChain) < len(neighbourChain):
 				maxChain = neighbourChain.copy()
 				neighbourID = neighbour

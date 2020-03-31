@@ -17,7 +17,7 @@ class Network:
 		self.locations = params['locations']
 		self.miners = {}
 		self.fullNodes = {}
-		self.allNodes = {}
+		self.nodes = {}
 		self.pipes = {}
 		self.env.process(self.addTransaction())
 
@@ -37,24 +37,24 @@ class Network:
 			location = np.random.choice(self.locations, size=1)[0]
 			if identifier < numMiners:
 				self.miners["M%d"%identifier] = Miner("M%d"%identifier, self.env,\
-											neighbourList, self.pipes, self.allNodes, location, self.params)
+											neighbourList, self.pipes, self.nodes, location, self.params)
 				if bool(self.params['verbose']):
 					print("%7.4f"%self.env.now+" : "+"%s added at location %s with neighbour list %s" % 
 						("M%d"%identifier, location, neighbourList))
 			else:
 				self.fullNodes["F%d" % (identifier-numMiners)] = FullNode("F%d" % (identifier-numMiners), self.env,
-											neighbourList, self.pipes, self.allNodes, location, self.params)
+											neighbourList, self.pipes, self.nodes, location, self.params)
 				if bool(self.params['verbose']):
 					print("%7.4f" % self.env.now+" : "+"%s added at location %s with neighbour list %s" %
 						("F%d" % identifier, location, neighbourList))
-		self.allNodes.update(self.miners)
-		self.allNodes.update(self.fullNodes)
+		self.nodes.update(self.miners)
+		self.nodes.update(self.fullNodes)
 
 	def addPipes(self, numMiners, numFullNodes):
 		for identifier in range(numMiners):
-			self.pipes["M%d"%identifier] = Pipe(self.env, "M%d"%identifier, self.allNodes)
+			self.pipes["M%d"%identifier] = Pipe(self.env, "M%d"%identifier, self.nodes)
 		for identifier in range(numFullNodes):
-			self.pipes["F%d"%identifier] = Pipe(self.env, "F%d"%identifier, self.allNodes)
+			self.pipes["F%d"%identifier] = Pipe(self.env, "F%d"%identifier, self.nodes)
 
 	def addTransaction(self):
 			num = 0
@@ -70,11 +70,11 @@ class Network:
 						print("%7.4f" % self.env.now+" : " +"%s added" % (transaction.identifier))
 				# Broadcast transactions to all neighbours
 				broadcast(self.env, transaction, "Transaction", "TempID", \
-					['M0', 'M2'], self.params, allNodes=self.allNodes)
+					['M0', 'M2'], self.params, nodes=self.nodes)
 				num+=1
 	
 	def displayChains(self):
 		print("\n--------------------All Miners--------------------\n")
-		for node in self.allNodes.values():
+		for node in self.nodes.values():
 			node.displayChain()
 
