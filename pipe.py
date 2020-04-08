@@ -4,9 +4,9 @@ from utils import getTransmissionDelay
 class Pipe(object):
     """This class represents the propagation through a cable."""
 
-    def __init__(self, env, identifier, miners):
+    def __init__(self, env, identifier, allNodes):
         self.env = env
-        self.miners = miners
+        self.allNodes = allNodes
         self.identifier = identifier
         self.store = simpy.Store(self.env)
 
@@ -15,7 +15,7 @@ class Pipe(object):
         return self.store.put(value)
 
     def put(self, value, sourceLocation):
-        destLocation = self.miners[self.identifier].location
+        destLocation = self.allNodes[self.identifier].location
         delay = getTransmissionDelay(sourceLocation, destLocation)
         return self.env.process(self.latencyPut(value, delay))
 

@@ -5,7 +5,7 @@
   "transactionSigma": 0.0,
   "numMiners": 250,
   "numFullNodes": 250,
-  "simulationTime": 360,
+  "simulationTime": 3600,
   "logFile": "output.log",
   "verbose": "",
   "blockCapacity": 500,
