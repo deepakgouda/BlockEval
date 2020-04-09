@@ -12,9 +12,9 @@ from transactionPool import TransactionPool
 class Miner(FullNode):
 	"""docstring for Miner"""
 
-	def __init__(self, identifier, env, neighbourList, pipes, nodes, location, params):
+	def __init__(self, identifier, env, neighbourList, pipes, nodes, location, blockPropData, params):
 		FullNode.__init__(self, identifier, env, neighbourList,
-                  pipes, nodes, location, params)
+                    pipes, nodes, location, blockPropData, params)
 		self.blockGeneratorAction = self.env.process(self.blockGenerator(params))
 
 	def blockGenerator(self, params):
@@ -30,6 +30,13 @@ class Miner(FullNode):
 				for transaction in transactionList:
 					l.append(transaction.identifier)
 				b = Block("B"+str(self.currentBlockID), transactionList, params)
+
+				"""Collection of data"""				
+				self.data['numBlocks'] += 1
+				"""If block has been mined earlier, inrease count of fork"""
+				if b.identifier in self.data['blockProp'].keys():
+					self.data['numForks'] += 1
+
 				print("%7.4f" % self.env.now+" : %s proposing %s with transaction list count %d with transactions %s ..." % (
 					self.identifier, b.identifier, len(l), l[:3]))
 
@@ -39,6 +46,10 @@ class Miner(FullNode):
 				self.blockchain.append(b)
 				if bool(self.params['verbose']):
 					self.displayChain()
+
+				"""Mark the block creation time"""
+				if b.identifier not in self.data['blockProp'].keys():
+					self.data['blockProp'][b.identifier] = [self.env.now, self.env.now]
 
 				"""Broadcast block to all neighbours"""
 				l = []
@@ -80,6 +91,10 @@ class Miner(FullNode):
 					print("%7.4f"%self.env.now+" : "+"%s"%self.identifier+\
 						" added Block %s"%b.identifier+" to the chain")
 					self.displayChain()
+
+				"""Mark the block receive time"""
+				self.data['blockProp'][b.identifier][1] = self.env.now
+
 			else:
 				"""If an invalid block is received, check neighbours and update 
 				the chain if a longer chain is found"""

@@ -12,7 +12,7 @@ def simulate(env, params):
 	net.addPipes(params['numMiners'], params['numFullNodes'])
 	return net
 
-# Load parameters from params.json
+"""Load parameters from params.json"""
 with open('params.json', 'r') as f:
 	params = f.read()
 params = json.loads(params)
@@ -24,4 +24,36 @@ net = simulate(env, params)
 env.run(until = params['simulationTime'])
 net.displayChains()
 stop = time()
-print(f"Time Taken = {stop-start} seconds")
+
+totalNodes = params['numFullNodes'] + params['numMiners']
+print("\n\t\t\t\t\t\tPARMATERS")
+print(f"Number of Full nodes = {params['numFullNodes']}")
+print(f"Number of Miners = {params['numMiners']}")
+print(f"Degree of nodes = {totalNodes//2 + 1}")
+print(f"Simulation time = {params['simulationTime']} seconds")
+
+print("\t\t\t\t\t\tSIMULATION DATA")
+"""Location distribution"""
+print("Location Distribution Data")
+for key, value in net.data['locationDist'].items():
+	print(f"{key} : {100*value/totalNodes}%")
+
+"""Block Propagation"""
+print("\nBlock Propagation Data")
+blockPropData = []
+for key, value in net.data['blockProp'].items():
+	blockPropData.append(value[1] - value[0])
+	print(f"{key} : {blockPropData[-1]} seconds")
+
+print(f"Mean Block Propagation time = {np.mean(blockPropData)} seconds")
+print(f"Median Block Propagation time = {np.median(blockPropData)} seconds")
+print(f"Minimum Block Propagation time = {np.min(blockPropData)} seconds")
+print(f"Maximum Block Propagation time = {np.max(blockPropData)} seconds")
+
+print(f"\nTotal number of Blocks = {net.data['numBlocks']}")
+print(f"Total number of Stale Blocks = {net.data['numStaleBlocks']}")
+print(f"Total number of Transactions = {net.data['numTransactions']}")
+
+print(f"\nNumber of forks observed = {net.data['numForks']}")
+
+print(f"\nSimulation Time = {stop-start} seconds")

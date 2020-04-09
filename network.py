@@ -19,31 +19,44 @@ class Network:
 		self.fullNodes = {}
 		self.nodes = {}
 		self.pipes = {}
+		self.data = {}
+		self.data['blockProp'] = {}
+		self.data['locationDist'] = {}
+		self.data['numBlocks'] = 0
+		self.data['numStaleBlocks'] = 0
+		self.data['numTransactions'] = 0
+		self.data['numForks'] = 0
+		"""Initialize the location distribution data"""
+		for loc in self.locations:
+			self.data['locationDist'][loc] = 0
 		self.env.process(self.addTransaction())
 
 	def addNodes(self, numMiners, numFullNodes):
 		"""Add Nodes to network"""
 		numNodes = numFullNodes + numMiners
-		# Degree of network graph. Degree >= n/2 guarantees a connected graph
+		"""Degree of network graph. Degree >= n/2 guarantees a connected graph"""
 		degree = numNodes//2 + 1
 		for identifier in range(numNodes):
-			# Possible neighbours are [0, 1, ... i-1, i+1, ... n]
+			"""Possible neighbours are [0, 1, ... i-1, i+1, ... n]"""
 			possibleNeighbours = list(range(identifier)) + \
                     	list(range(identifier+1, numNodes))
-			# Generate a random sample of size degree without replacement from possible neighbours
+			"""Generate a random sample of size degree without replacement from possible neighbours"""
 			randNeighbour = np.random.choice(possibleNeighbours, size=degree, replace=False)
 			neighbourList = ["M%d"%x if x < numMiners else "F%d"%(x-numMiners) for x in randNeighbour]
 
+			"""Generate a location of the node"""
 			location = np.random.choice(self.locations, size=1)[0]
+			self.data['locationDist'][location] += 1
+
 			if identifier < numMiners:
 				self.miners["M%d"%identifier] = Miner("M%d"%identifier, self.env,\
-											neighbourList, self.pipes, self.nodes, location, self.params)
+									neighbourList, self.pipes, self.nodes, location, self.data, self.params)
 				if bool(self.params['verbose']):
 					print("%7.4f"%self.env.now+" : "+"%s added at location %s with neighbour list %s" % 
 						("M%d"%identifier, location, neighbourList))
 			else:
 				self.fullNodes["F%d" % (identifier-numMiners)] = FullNode("F%d" % (identifier-numMiners), self.env,
-											neighbourList, self.pipes, self.nodes, location, self.params)
+									neighbourList, self.pipes, self.nodes, location, self.data, self.params)
 				if bool(self.params['verbose']):
 					print("%7.4f" % self.env.now+" : "+"%s added at location %s with neighbour list %s" %
 						("F%d" % identifier, location, neighbourList))
@@ -62,8 +75,10 @@ class Network:
 			delay = getTransactionDelay(self.params['transactionMu'], self.params['transactionSigma'])
 			yield self.env.timeout(delay)
 			transaction = (Transaction("T%d" % num, self.env.now))
-			if bool(self.params['verbose']):
+			self.data['numTransactions'] += 1
+			if self.params['verbose'] == "vv":
 				print("%7.4f" % self.env.now+" : " + "%s added" % (transaction.identifier))
+			
 			"""Broadcast transactions to all neighbours"""
 			transactionNeighbours = list(np.random.choice(
 					list(self.nodes.keys()), size=len(self.nodes)//2))
