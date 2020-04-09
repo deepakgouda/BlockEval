@@ -59,18 +59,16 @@ class Network:
 	def addTransaction(self):
 			num = 0
 			while True:
-				# source = np.random.choice(self.locations, size=1)[0]
-				# destination = np.random.choice(self.locations, size=1)[0]
-				# delay = getTransmissionDelay(source, destination)
 				delay = getTransactionDelay(
 					self.params['transactionMu'], self.params['transactionSigma'])
 				yield self.env.timeout(delay)
 				transaction = (Transaction("T%d"%num, self.env.now))
 				if bool(self.params['verbose']):
 						print("%7.4f" % self.env.now+" : " +"%s added" % (transaction.identifier))
-				# Broadcast transactions to all neighbours
+				"""Broadcast transactions to all neighbours"""
+				transactionNeighbours = list(np.random.choice(list(self.nodes.keys()), size=len(self.nodes)//2))
 				broadcast(self.env, transaction, "Transaction", "TempID", \
-					['M0', 'M2'], self.params, nodes=self.nodes)
+					transactionNeighbours, self.params, nodes=self.nodes)
 				num+=1
 	
 	def displayChains(self):

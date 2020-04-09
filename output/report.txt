@@ -1,0 +1,23 @@
+"numMiners": 50,
+"numFullNodes": 50,
+"simulationTime": 500,
+Time Taken = 15.257630348205566 seconds
+Time Taken = 15.302981853485107 seconds
+
+"numMiners": 100,
+"numFullNodes": 100,
+"simulationTime": 500,
+Time Taken = 66.66127729415894 seconds
+Time Taken = 64.9010853767395 seconds
+
+"numMiners": 250,
+"numFullNodes": 250,
+"simulationTime": 500,
+Time Taken = 529.226902961731 seconds
+Time Taken = 462.5921981334686 seconds
+
+"numMiners": 500,
+"numFullNodes": 500,
+"simulationTime": 500,
+Time Taken = 2225.710757255554 seconds
+Time Taken = 2109.050565481186 seconds
