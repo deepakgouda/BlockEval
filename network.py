@@ -59,9 +59,6 @@ class Network:
 	def addTransaction(self):
 			num = 0
 			while True:
-				# source = np.random.choice(self.locations, size=1)[0]
-				# destination = np.random.choice(self.locations, size=1)[0]
-				# delay = getTransmissionDelay(source, destination)
 				delay = getTransactionDelay(
 					self.params['transactionMu'], self.params['transactionSigma'])
 				yield self.env.timeout(delay)
