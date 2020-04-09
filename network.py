@@ -68,9 +68,10 @@ class Network:
 				transaction = (Transaction("T%d"%num, self.env.now))
 				if bool(self.params['verbose']):
 						print("%7.4f" % self.env.now+" : " +"%s added" % (transaction.identifier))
-				# Broadcast transactions to all neighbours
+				"""Broadcast transactions to all neighbours"""
+				transactionNeighbours = list(np.random.choice(list(self.nodes.keys()), size=len(self.nodes)//2))
 				broadcast(self.env, transaction, "Transaction", "TempID", \
-					['M0', 'M2'], self.params, nodes=self.nodes)
+					transactionNeighbours, self.params, nodes=self.nodes)
 				num+=1
 	
 	def displayChains(self):

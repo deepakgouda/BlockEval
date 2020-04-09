@@ -18,7 +18,10 @@ with open('params.json', 'r') as f:
 params = json.loads(params)
 
 np.random.seed(7)
+start = time()
 env = simpy.Environment()
 net = simulate(env, params)
 env.run(until = params['simulationTime'])
 net.displayChains()
+stop = time()
+print(f"Time Taken = {stop-start} seconds")
