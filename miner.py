@@ -34,7 +34,7 @@ class Miner(FullNode):
 				"""Collection of data"""				
 				self.data['numBlocks'] += 1
 				"""If block has been mined earlier, inrease count of fork"""
-				if b.identifier in self.data['blockProp'].keys():
+				if b.identifier in [id[:id.index('_')] for id in self.data['blockProp'].keys()]:
 					self.data['numForks'] += 1
 
 				print("%7.4f" % self.env.now+" : %s proposing %s with transaction list count %d with transactions %s ..." % (
@@ -48,8 +48,8 @@ class Miner(FullNode):
 					self.displayChain()
 
 				"""Mark the block creation time"""
-				if b.identifier not in self.data['blockProp'].keys():
-					self.data['blockProp'][b.identifier] = [self.env.now, self.env.now]
+				if b.hash not in self.data['blockProp'].keys():
+					self.data['blockProp'][b.hash] = [self.env.now, self.env.now]
 
 				"""Broadcast block to all neighbours"""
 				l = []
@@ -93,7 +93,7 @@ class Miner(FullNode):
 					self.displayChain()
 
 				"""Mark the block receive time"""
-				self.data['blockProp'][b.identifier][1] = self.env.now
+				self.data['blockProp'][b.hash][1] = self.env.now
 
 			else:
 				"""If an invalid block is received, check neighbours and update 

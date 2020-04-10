@@ -1,4 +1,9 @@
 import simpy
+import string
+import random
+
+def getHash(k):
+	return ''.join(random.choices(string.ascii_lowercase+string.digits, k=k))
 
 class Block:
 	"""docstring for Block"""
@@ -6,3 +11,4 @@ class Block:
 		self.params = params
 		self.identifier = identifier
 		self.transactionList = transactionList
+		self.hash = self.identifier+"_"+getHash(10)

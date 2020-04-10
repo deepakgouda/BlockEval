@@ -59,7 +59,7 @@ class FullNode:
 						" added Block %s"%b.identifier+" to the chain")
 					self.displayChain()
 				"""Mark the receive time of the block"""
-				self.data['blockProp'][b.identifier][1] = self.env.now
+				self.data['blockProp'][b.hash][1] = self.env.now
 			else:
 				"""If an invalid block is received, check neighbours and update 
 				the chain if a longer chain is found"""
