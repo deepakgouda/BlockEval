@@ -74,10 +74,14 @@ class Network:
 		while True:
 			delay = getTransactionDelay(self.params['transactionMu'], self.params['transactionSigma'])
 			yield self.env.timeout(delay)
-			transaction = (Transaction("T%d" % num, self.env.now))
+
+			value = np.random.randint(self.params['txLow'], self.params['txHigh'])
+			reward = value * self.params['rewardPercentage']
+
+			transaction = (Transaction("T%d" % num, self.env.now, value, reward))
 			self.data['numTransactions'] += 1
 			if self.params['verbose'] == "vv":
-				print("%7.4f" % self.env.now+" : " + "%s added" % (transaction.identifier))
+				print("%7.4f" % self.env.now+" : " + "%s added with reward %.2f" % (transaction.identifier, transaction.reward))
 			
 			"""Broadcast transactions to all neighbours"""
 			transactionNeighbours = list(np.random.choice(

@@ -1,7 +1,7 @@
 import numpy as np
 from broadcast import broadcast
 from transaction import Transaction
-from utils import getTransmissionDelay
+from utils import getTransmissionDelay, PriorityQueue
 
 class TransactionPool:
 	"""Transaction pool for a miner"""
@@ -11,33 +11,29 @@ class TransactionPool:
 		self.neighbourList = neighbourList
 		self.params = params
 		self.nodes = nodes
-		self.transactionList = []
+		self.transactionQueue = PriorityQueue()
 		self.prevTransactions = []
 	
 	def getTransaction(self, transactionCount):
-		"""Returns transactionCount number of Transactions. Ideally, should 
-		return top transactions based on miner reward"""
-		transactionCount = min(transactionCount, len(self.transactionList))
-		transactions = self.transactionList[:transactionCount]
-		return transactions
+		"""Returns transactionCount number of Transactions. Returns
+		 top transactions based on miner reward"""
+		return self.transactionQueue.get(transactionCount)
 
 	def popTransaction(self, transactionCount):
 		"""Remove transactions from transaction pool. Called when transactions 
 		are added by a received block or a block is mined."""
-		transactionCount = min(transactionCount, len(self.transactionList))
-		self.prevTransactions = self.transactionList[:transactionCount]
-		self.transactionList = self.transactionList[transactionCount:]
+		poppedTransactions = self.transactionQueue.pop(transactionCount)
+		self.prevTransactions.append(poppedTransactions)
 
 	def putTransaction(self, transaction, sourceLocation):
 		"""Add received transaction to the transaction pool and broadcast further"""
 		destLocation = self.nodes[self.identifier].location
 		delay = getTransmissionDelay(sourceLocation, destLocation)
 		yield self.env.timeout(delay)
-		if transaction not in self.transactionList and transaction not in self.prevTransactions:
-			self.transactionList.append(transaction)
+		if not self.transactionQueue.isPresent(transaction) and transaction not in self.prevTransactions:
+			self.transactionQueue.insert(transaction)
 			broadcast(self.env, transaction, "Transaction", self.identifier, \
 						self.neighbourList, self.params, nodes=self.nodes)
-
 			if self.params['verbose'] == "vv":
 			    print("%7.4f : %s accepted by %s"%(self.env.now, transaction.identifier, self.identifier))
 		

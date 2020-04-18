@@ -49,8 +49,8 @@ class FullNode:
 			if int(b.identifier[1:]) == currID+1 and b.identifier not in currIDs:
 				"""Remove already mined transactions from private pool"""
 				for transaction in b.transactionList:
-					if transaction in self.transactionPool.transactionList:
-						self.transactionPool.transactionList.remove(transaction)
+					if self.transactionPool.transactionQueue.isPresent(transaction):
+						self.transactionPool.transactionQueue.remove(transaction)
 						self.transactionPool.prevTransactions.append(transaction)
 				"""Append block to own chain"""
 				self.blockchain.append(b)
