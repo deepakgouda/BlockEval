@@ -26,7 +26,7 @@ net.displayChains()
 stop = time()
 
 totalNodes = params['numFullNodes'] + params['numMiners']
-print("\n\t\t\t\t\t\tPARMATERS")
+print("\n\n\t\t\t\t\t\tPARMATERS")
 print(f"Number of Full nodes = {params['numFullNodes']}")
 print(f"Number of Miners = {params['numMiners']}")
 print(f"Degree of nodes = {totalNodes//2 + 1}")
@@ -53,6 +53,27 @@ print(f"Maximum Block Propagation time = {np.max(blockPropData)} seconds")
 print(f"\nTotal number of Blocks = {net.data['numBlocks']}")
 print(f"Total number of Stale Blocks = {net.data['numStaleBlocks']}")
 print(f"Total number of Transactions = {net.data['numTransactions']}")
+
+longestChain = []
+longestChainNode = net.nodes['M0']
+
+for node in net.nodes.values():
+	if len(node.blockchain) > len(longestChain):
+		longestChainNode = node
+		longestChain = node.blockchain
+
+txWaitTimes = []
+txRewards = []
+
+block = longestChain[-1]
+for transaction in block.transactionList:
+	txRewards.append(transaction.reward)
+	txWaitTimes.append(transaction.miningTime - transaction.creationTime)
+
+print(f"\nNode with longest chain = {longestChainNode.identifier}")
+print(f"Min waiting time = {np.min(txWaitTimes)} with reward = {txRewards[np.argmin(txWaitTimes)]}")
+print(f"Median waiting time = {np.median(txWaitTimes)}")
+print(f"Max waiting time = {np.max(txWaitTimes)} with reward = {txRewards[np.argmax(txWaitTimes)]}")
 
 print(f"\nNumber of forks observed = {net.data['numForks']}")
 

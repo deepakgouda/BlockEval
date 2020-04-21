@@ -28,6 +28,7 @@ class Miner(FullNode):
 				transactionList = self.transactionPool.getTransaction(transactionCount)
 				l = []
 				for transaction in transactionList:
+					transaction.miningTime = self.env.now
 					l.append(transaction.identifier)
 				b = Block("B"+str(self.currentBlockID), transactionList, params)
 
@@ -52,9 +53,6 @@ class Miner(FullNode):
 					self.data['blockProp'][b.hash] = [self.env.now, self.env.now]
 
 				"""Broadcast block to all neighbours"""
-				l = []
-				for transaction in transactionList:
-					l.append(transaction.identifier)
 				broadcast(self.env, b, "Block", self.identifier, self.neighbourList, \
 							self.params, pipes=self.pipes, nodes=self.nodes)
 
