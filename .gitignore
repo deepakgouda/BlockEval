@@ -137,3 +137,4 @@ tests/
 .vscode/
 
 20200*.json
+output/*

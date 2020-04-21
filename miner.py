@@ -12,9 +12,9 @@ from transactionPool import TransactionPool
 class Miner(FullNode):
 	"""docstring for Miner"""
 
-	def __init__(self, identifier, env, neighbourList, pipes, nodes, location, params):
+	def __init__(self, identifier, env, neighbourList, pipes, nodes, location, blockPropData, params):
 		FullNode.__init__(self, identifier, env, neighbourList,
-                  pipes, nodes, location, params)
+                    pipes, nodes, location, blockPropData, params)
 		self.blockGeneratorAction = self.env.process(self.blockGenerator(params))
 
 	def blockGenerator(self, params):
@@ -28,8 +28,16 @@ class Miner(FullNode):
 				transactionList = self.transactionPool.getTransaction(transactionCount)
 				l = []
 				for transaction in transactionList:
+					transaction.miningTime = self.env.now
 					l.append(transaction.identifier)
 				b = Block("B"+str(self.currentBlockID), transactionList, params)
+
+				"""Collection of data"""				
+				self.data['numBlocks'] += 1
+				"""If block has been mined earlier, inrease count of fork"""
+				if b.identifier in [id[:id.index('_')] for id in self.data['blockProp'].keys()]:
+					self.data['numForks'] += 1
+
 				print("%7.4f" % self.env.now+" : %s proposing %s with transaction list count %d with transactions %s ..." % (
 					self.identifier, b.identifier, len(l), l[:3]))
 
@@ -40,10 +48,11 @@ class Miner(FullNode):
 				if bool(self.params['verbose']):
 					self.displayChain()
 
+				"""Mark the block creation time"""
+				if b.hash not in self.data['blockProp'].keys():
+					self.data['blockProp'][b.hash] = [self.env.now, self.env.now]
+
 				"""Broadcast block to all neighbours"""
-				l = []
-				for transaction in transactionList:
-					l.append(transaction.identifier)
 				broadcast(self.env, b, "Block", self.identifier, self.neighbourList, \
 							self.params, pipes=self.pipes, nodes=self.nodes)
 
@@ -71,8 +80,8 @@ class Miner(FullNode):
 
 				"""Remove already mined transactions from private pool"""
 				for transaction in b.transactionList:
-					if transaction in self.transactionPool.transactionList:
-						self.transactionPool.transactionList.remove(transaction)
+					if self.transactionPool.transactionQueue.isPresent(transaction):
+						self.transactionPool.transactionQueue.remove(transaction)
 						self.transactionPool.prevTransactions.append(transaction)
 				"""Append block to own chain"""
 				self.blockchain.append(b)
@@ -80,6 +89,10 @@ class Miner(FullNode):
 					print("%7.4f"%self.env.now+" : "+"%s"%self.identifier+\
 						" added Block %s"%b.identifier+" to the chain")
 					self.displayChain()
+
+				"""Mark the block receive time"""
+				self.data['blockProp'][b.hash][1] = self.env.now
+
 			else:
 				"""If an invalid block is received, check neighbours and update 
 				the chain if a longer chain is found"""

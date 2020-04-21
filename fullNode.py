@@ -11,13 +11,14 @@ from transactionPool import TransactionPool
 class FullNode:
 	"""docstring for FullNode"""
 
-	def __init__(self, identifier, env, neighbourList, pipes, nodes, location, params):
+	def __init__(self, identifier, env, neighbourList, pipes, nodes, location, data, params):
 		self.identifier = identifier
 		self.env = env
 		self.neighbourList = neighbourList
 		self.pipes = pipes
 		self.nodes = nodes
 		self.location = location
+		self.data = data
 		self.params = params
 		self.transactionPool = TransactionPool(env, identifier, neighbourList, nodes, params)
 		self.pool = []
@@ -46,11 +47,10 @@ class FullNode:
 				currID = -1
 			currIDs = [x.identifier for x in self.blockchain]
 			if int(b.identifier[1:]) == currID+1 and b.identifier not in currIDs:
-
 				"""Remove already mined transactions from private pool"""
 				for transaction in b.transactionList:
-					if transaction in self.transactionPool.transactionList:
-						self.transactionPool.transactionList.remove(transaction)
+					if self.transactionPool.transactionQueue.isPresent(transaction):
+						self.transactionPool.transactionQueue.remove(transaction)
 						self.transactionPool.prevTransactions.append(transaction)
 				"""Append block to own chain"""
 				self.blockchain.append(b)
@@ -58,6 +58,8 @@ class FullNode:
 					print("%7.4f"%self.env.now+" : "+"%s"%self.identifier+\
 						" added Block %s"%b.identifier+" to the chain")
 					self.displayChain()
+				"""Mark the receive time of the block"""
+				self.data['blockProp'][b.hash][1] = self.env.now
 			else:
 				"""If an invalid block is received, check neighbours and update 
 				the chain if a longer chain is found"""
@@ -68,19 +70,24 @@ class FullNode:
 		maxChain = self.blockchain.copy()
 		neighbourID = ""
 		flag = False
+		numStaleBlocks = 0
+
 		for neighbour in self.neighbourList:
 			neighbourChain = self.nodes[neighbour].getBlockchain(self.location)
 			if len(maxChain) < len(neighbourChain):
 				maxChain = neighbourChain.copy()
 				neighbourID = neighbour
 				flag = True
+		
+		numStaleBlocks = len(maxChain) - len(self.blockchain)
+		self.data['numStaleBlocks'] += numStaleBlocks
 		self.blockchain = maxChain.copy()
 		if flag:
 			self.currentBlockID = int(self.blockchain[-1].identifier[1:])+1
 		if bool(self.params['verbose']):
 			if neighbourID:
 				print("%7.4f"%self.env.now+" : "+"%s"%self.identifier+\
-					" updated to chain of %s"%(neighbourID))
+						" updated to chain of %s and reverted %d blocks" % (neighbourID, numStaleBlocks))
 
 	def displayChain(self):
 		chain = [b.identifier for b in self.blockchain]
