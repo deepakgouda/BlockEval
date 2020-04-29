@@ -93,5 +93,5 @@ for node in net.nodes.values():
 	netDump[node.identifier]['data'] = node.data
 	netDump[node.identifier]['blockchain'] = node.blockchain
 
-with open('netDump.pkl', 'wb') as f:
+with open(sys.argv[2], 'wb') as f:
 	pkl.dump(netDump, f)
