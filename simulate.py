@@ -1,6 +1,8 @@
+import sys
 import simpy
 import numpy as np
 import json
+import pickle as pkl
 from block import Block
 from network import Network
 from time import time
@@ -13,7 +15,8 @@ def simulate(env, params):
 	return net
 
 """Load parameters from params.json"""
-with open('params.json', 'r') as f:
+paramsFile = sys.argv[1]
+with open(paramsFile, 'r') as f:
 	params = f.read()
 params = json.loads(params)
 
@@ -78,3 +81,17 @@ print(f"Max waiting time = {np.max(txWaitTimes)} with reward = {txRewards[np.arg
 print(f"\nNumber of forks observed = {net.data['numForks']}")
 
 print(f"\nSimulation Time = {stop-start} seconds")
+
+toStore = net.nodes.copy()
+
+netDump = {}
+
+for node in net.nodes.values():
+	netDump[node.identifier] = {}
+	netDump[node.identifier]['neighbourList'] = node.neighbourList
+	netDump[node.identifier]['location'] = node.location
+	netDump[node.identifier]['data'] = node.data
+	netDump[node.identifier]['blockchain'] = node.blockchain
+
+with open('netDump.pkl', 'wb') as f:
+	pkl.dump(netDump, f)
