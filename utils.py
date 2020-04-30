@@ -15,7 +15,7 @@ def getTransactionDelay(mu, sigma):
 
 
 def getTransmissionDelay(source, destination):
-	with open('params.json', 'r') as f:
+	with open('params/params.json', 'r') as f:
 		params = f.read()
 	params = json.loads(params)
 	mu = params["delay"][source][destination]["mu"]

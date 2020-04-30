@@ -21,9 +21,6 @@ class FullNode:
 		self.data = data
 		self.params = params
 		self.transactionPool = TransactionPool(env, identifier, neighbourList, nodes, params)
-		self.pool = []
-		self.block = []
-		self.parentQueue = []
 		self.blockchain = []
 		self.currentBlockID = 0
 		self.env.process(self.receiveBlock())
