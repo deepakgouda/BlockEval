@@ -1,3 +1,6 @@
+"""
+python simulate.py <params.json> <netDump.pkl>
+"""
 import sys
 import simpy
 import numpy as np
@@ -29,7 +32,7 @@ net.displayChains()
 stop = time()
 
 totalNodes = params['numFullNodes'] + params['numMiners']
-print("\n\n\t\t\t\t\t\tPARMATERS")
+print("\n\n\t\t\t\t\t\tPARAMETERS")
 print(f"Number of Full nodes = {params['numFullNodes']}")
 print(f"Number of Miners = {params['numMiners']}")
 print(f"Degree of nodes = {totalNodes//2 + 1}")
@@ -53,10 +56,6 @@ print(f"Median Block Propagation time = {np.median(blockPropData)} seconds")
 print(f"Minimum Block Propagation time = {np.min(blockPropData)} seconds")
 print(f"Maximum Block Propagation time = {np.max(blockPropData)} seconds")
 
-print(f"\nTotal number of Blocks = {net.data['numBlocks']}")
-print(f"Total number of Stale Blocks = {net.data['numStaleBlocks']}")
-print(f"Total number of Transactions = {net.data['numTransactions']}")
-
 longestChain = []
 longestChainNode = net.nodes['M0']
 
@@ -65,13 +64,23 @@ for node in net.nodes.values():
 		longestChainNode = node
 		longestChain = node.blockchain
 
+numTxs = 0
+for block in longestChain:
+	numTxs+=len(block.transactionList)
+meanBlockSize = (numTxs*250)/len(longestChain)
+
+print(f"\nTotal number of Blocks = {len(longestChain)}")
+print(f"Mean block size = {meanBlockSize} bytes")
+print(f"Total number of Stale Blocks = {net.data['numStaleBlocks']}")
+print(f"Total number of Transactions = {net.data['numTransactions']}")
+
 txWaitTimes = []
 txRewards = []
 
-block = longestChain[-1]
-for transaction in block.transactionList:
-	txRewards.append(transaction.reward)
-	txWaitTimes.append(transaction.miningTime - transaction.creationTime)
+for block in longestChain:
+	for transaction in block.transactionList:
+		txRewards.append(transaction.reward)
+		txWaitTimes.append(transaction.miningTime - transaction.creationTime)
 
 print(f"\nNode with longest chain = {longestChainNode.identifier}")
 print(f"Min waiting time = {np.min(txWaitTimes)} with reward = {txRewards[np.argmin(txWaitTimes)]}")

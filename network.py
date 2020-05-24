@@ -22,7 +22,6 @@ class Network:
 		self.data = {}
 		self.data['blockProp'] = {}
 		self.data['locationDist'] = {}
-		self.data['numBlocks'] = 0
 		self.data['numStaleBlocks'] = 0
 		self.data['numTransactions'] = 0
 		self.data['numForks'] = 0
@@ -74,11 +73,6 @@ class Network:
 		while True:
 			delay = getTransactionDelay(self.params['transactionMu'], self.params['transactionSigma'])
 			yield self.env.timeout(delay)
-<<<<<<< HEAD
-			transaction = (Transaction("T%d" % num, self.env.now))
-			if bool(self.params['verbose']):
-				print("%7.4f" % self.env.now+" : " + "%s added" % (transaction.identifier))
-=======
 
 			value = np.random.randint(self.params['txLow'], self.params['txHigh'])
 			reward = value * self.params['rewardPercentage']
@@ -88,7 +82,6 @@ class Network:
 			if self.params['verbose'] == "vv":
 				print("%7.4f" % self.env.now+" : " + "%s added with reward %.2f" % (transaction.identifier, transaction.reward))
 			
->>>>>>> 9ce0a302f3009d7f40268ef2cb0b4d86f1820f39
 			"""Broadcast transactions to all neighbours"""
 			transactionNeighbours = list(np.random.choice(
 					list(self.nodes.keys()), size=len(self.nodes)//2))
