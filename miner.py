@@ -29,11 +29,12 @@ class Miner(FullNode):
 				l = []
 				for transaction in transactionList:
 					transaction.miningTime = self.env.now
+					"""Simulating Tx validation time"""
+					self.env.timeout(0.1)
 					l.append(transaction.identifier)
 				b = Block("B"+str(self.currentBlockID), transactionList, params)
 
 				"""Collection of data"""				
-				self.data['numBlocks'] += 1
 				"""If block has been mined earlier, inrease count of fork"""
 				if b.identifier in [id[:id.index('_')] for id in self.data['blockProp'].keys()]:
 					self.data['numForks'] += 1

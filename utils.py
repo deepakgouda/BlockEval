@@ -20,10 +20,11 @@ def getTransmissionDelay(source, destination):
 	params = json.loads(params)
 	mu = params["delay"][source][destination]["mu"]
 	sigma = params["delay"][source][destination]["sigma"]
+	adjust = 840
 	delay = mu + sigma*np.random.randn()
 	if delay < 0:
 		return getTransmissionDelay(source, destination)
-	return delay*600
+	return delay*adjust
 
 """Custom Priority Queue implementation to maintain the order of 
 transactions to be mined by a miner, with key as the miner reward"""

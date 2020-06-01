@@ -22,7 +22,6 @@ class Network:
 		self.data = {}
 		self.data['blockProp'] = {}
 		self.data['locationDist'] = {}
-		self.data['numBlocks'] = 0
 		self.data['numStaleBlocks'] = 0
 		self.data['numTransactions'] = 0
 		self.data['numForks'] = 0
