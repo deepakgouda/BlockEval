@@ -32,9 +32,7 @@ class Miner(FullNode):
 					"""Simulating Tx validation time"""
 					self.env.timeout(0.1)
 					l.append(transaction.identifier)
-				b = Block("B"+str(self.currentBlockID), transactionList, params, params['blockHeaderSize'], "Header")
-				if(self.params['blockDivision']):
-					b_body = Block("b"+str(self.currentBlockID), transactionList, params, params['blockBodySize'], "Body")
+				b = Block("B"+str(self.currentBlockID), transactionList, params)
 
 				"""Collection of data"""				
 				"""If block has been mined earlier, inrease count of fork"""
@@ -59,11 +57,6 @@ class Miner(FullNode):
 				broadcast(self.env, b, "Block", self.identifier, self.neighbourList, \
 							self.params, pipes=self.pipes, nodes=self.nodes)
 
-				if(self.params["blockDivision"]):
-					"""Broadcast block body to all neighbours"""
-					broadcast(self.env, b_body, "Block", self.identifier, self.neighbourList, \
-									self.params, pipes=self.pipes, nodes=self.nodes)
-
 				"""Remove transactions from local pool"""
 				self.transactionPool.popTransaction(transactionCount)
 				self.currentBlockID += 1
@@ -77,12 +70,7 @@ class Miner(FullNode):
 		"""Receive newly mined block from neighbour"""
 		while True:
 			b = yield self.pipes[self.identifier].get()
-
-			if(self.params["blockDivision"]):
-				yield self.env.timeout(b.size * 10)
-				if(b.type == "Body"):
-					continue
-
+			yield self.env.timeout(b.size * 10)
 			if len(self.blockchain) > 0:
 				currID = int(self.blockchain[-1].identifier[1:])
 			else:

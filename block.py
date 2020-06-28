@@ -7,10 +7,9 @@ def getHash(k):
 
 class Block:
 	"""docstring for Block"""
-	def __init__(self, identifier, transactionList, params, size, type):
+	def __init__(self, identifier, transactionList, params):
 		self.params = params
 		self.identifier = identifier
 		self.transactionList = transactionList
 		self.hash = self.identifier+"_"+getHash(10)
-		self.size = size
-		self.type = type
+		self.size = params['blockSize']

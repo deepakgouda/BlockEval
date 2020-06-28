@@ -38,11 +38,7 @@ class FullNode:
 		"""Receive newly mined block from neighbour"""
 		while True:
 			b = yield self.pipes[self.identifier].get()
-
 			yield self.env.timeout(b.size * 10)
-			if(b.type == "Body"):
-				continue
-
 			if len(self.blockchain) > 0:
 				currID = int(self.blockchain[-1].identifier[1:])
 			else:
