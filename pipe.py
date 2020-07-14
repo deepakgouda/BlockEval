@@ -15,8 +15,11 @@ class Pipe(object):
         return self.store.put(value)
 
     def put(self, value, sourceLocation):
+        # Simulate transmission delay
+        # yield self.env.timeout(value.size * 1000)
         destLocation = self.allNodes[self.identifier].location
         delay = getTransmissionDelay(sourceLocation, destLocation)
+        delay = delay + value.size * 10
         return self.env.process(self.latencyPut(value, delay))
 
     def get(self):

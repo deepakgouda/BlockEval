@@ -12,3 +12,4 @@ class Block:
 		self.identifier = identifier
 		self.transactionList = transactionList
 		self.hash = self.identifier+"_"+getHash(10)
+		self.size = params['blockSize']
