@@ -1,6 +1,7 @@
 import simpy
 from utils import getTransmissionDelay
 
+
 class Pipe(object):
     """This class represents the propagation through a cable."""
 
