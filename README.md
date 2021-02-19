@@ -5,6 +5,10 @@ blockchain simulator, BlockEval, which mimics the behaviour
 of concurrent operations that occur in a real-life blockchain
 system.
 
+The complete design and validation procedure can be found on 
+[IEEExplore](https://ieeexplore.ieee.org/document/9352838), accepted by
+[2021 International Conference on COMmunication Systems & NETworkS (COMSNETS).](https://www.comsnets.org/index.html)
+
 BlockEval can be extended to simulate any blockchain framework. In 
 the provided implementation, we show the Proof-of-Work implementation
 of BlockEval.
